@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=3 uid="uid://cdlq6id30lp1e"]
+
+[ext_resource type="Script" uid="uid://u6rbxa5jg1uf" path="res://scripts/in_game_menu.gd" id="1_ioadw"]
+
+[node name="InGameMenu" type="CanvasLayer"]
+script = ExtResource("1_ioadw")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="Score" type="Label" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 50
+text = "Score:"

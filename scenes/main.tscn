@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dtcrps3furacw"]
+[gd_scene load_steps=13 format=3 uid="uid://dtcrps3furacw"]
 
 [ext_resource type="Script" uid="uid://cb7e176cxodbg" path="res://scripts/main.gd" id="1_choun"]
 [ext_resource type="PackedScene" uid="uid://bo816iivr0n7u" path="res://scenes/player.tscn" id="1_o5qli"]
@@ -10,6 +10,8 @@
 [ext_resource type="Texture2D" uid="uid://fssveogqy61h" path="res://assets/bg/ParalaxMenu/farground_mountains.png" id="7_a8y0u"]
 [ext_resource type="Texture2D" uid="uid://uotd6a3oxtpu" path="res://assets/bg/ParalaxMenu/midground_mountains.png" id="8_jkv2x"]
 [ext_resource type="Texture2D" uid="uid://32hqtiy0hos5" path="res://assets/bg/ParalaxMenu/foreground_mountains.png" id="9_jbj1t"]
+[ext_resource type="PackedScene" uid="uid://dgu2ajva4ara" path="res://scenes/coin.tscn" id="11_ya4ey"]
+[ext_resource type="PackedScene" uid="uid://cdlq6id30lp1e" path="res://scenes/in_game_menu.tscn" id="12_eb6dy"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_choun")
@@ -92,3 +94,8 @@ color = Color(0.529412, 0.807843, 0.921569, 1)
 
 [node name="Player" parent="." instance=ExtResource("1_o5qli")]
 position = Vector2(300, 540)
+
+[node name="Coin" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(992, 336)
+
+[node name="InGameMenu" parent="." instance=ExtResource("12_eb6dy")]
