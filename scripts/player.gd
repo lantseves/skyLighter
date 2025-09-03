@@ -199,6 +199,7 @@ func process_loop(delta):
 	# Эффект в верхней точке
 	if abs(loop_progress - 0.5) < 0.05 and has_node("TopLoopParticles"):
 		$TopLoopParticles.emitting = true
+		
 
 func end_loop():
 	is_looping = false
