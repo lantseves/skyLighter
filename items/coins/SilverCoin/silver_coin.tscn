@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://d4boo2ixdnqp2"]
+
+[ext_resource type="PackedScene" uid="uid://dgu2ajva4ara" path="res://items/coins/BaseCoin/base_coin.tscn" id="1_hp1p3"]
+[ext_resource type="Texture2D" uid="uid://drdgiimaon8vt" path="res://assets/icons/star_silver.png" id="2_fpcih"]
+
+[node name="SilverCoin" instance=ExtResource("1_hp1p3")]
+
+[node name="StarSilver" type="Sprite2D" parent="." index="1"]
+position = Vector2(0, -2)
+scale = Vector2(0.632131, 0.591961)
+texture = ExtResource("2_fpcih")

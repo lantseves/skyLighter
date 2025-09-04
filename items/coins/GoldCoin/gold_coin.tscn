@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://ctk8wh1akmtfm"]
+
+[ext_resource type="PackedScene" uid="uid://dgu2ajva4ara" path="res://items/coins/BaseCoin/base_coin.tscn" id="1_wmfui"]
+[ext_resource type="Texture2D" uid="uid://mxmuvwjlbxjf" path="res://assets/icons/star_gold.png" id="2_hdig5"]
+
+[node name="GoldCoin" instance=ExtResource("1_wmfui")]
+pointAmount = 2
+
+[node name="StarGold" type="Sprite2D" parent="." index="1"]
+position = Vector2(0, -2)
+scale = Vector2(0.600002, 0.600002)
+texture = ExtResource("2_hdig5")

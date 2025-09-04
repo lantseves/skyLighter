@@ -1,0 +1,157 @@
+[gd_scene load_steps=15 format=3 uid="uid://dtcrps3furacw"]
+
+[ext_resource type="Script" uid="uid://cb7e176cxodbg" path="res://levels/MainLevel/main.gd" id="1_t3t11"]
+[ext_resource type="Texture2D" uid="uid://bgpinl7adxyrm" path="res://assets/bg/ParalaxMenu/sky_color.png" id="2_f4g65"]
+[ext_resource type="Texture2D" uid="uid://bcbfw8d3oabsd" path="res://assets/bg/ParalaxMenu/farground_cloud_1.png" id="3_hgw0l"]
+[ext_resource type="Texture2D" uid="uid://jxbji03dhqt6" path="res://assets/bg/ParalaxMenu/farground_cloud_2.png" id="4_o468e"]
+[ext_resource type="Texture2D" uid="uid://bb2g5sdn2vw5n" path="res://assets/bg/ParalaxMenu/mid_ground_cloud_1.png" id="5_p24im"]
+[ext_resource type="Texture2D" uid="uid://dc68cnmy4dkwq" path="res://assets/bg/ParalaxMenu/mid_ground_cloud_2.png" id="6_oix3x"]
+[ext_resource type="Texture2D" uid="uid://fssveogqy61h" path="res://assets/bg/ParalaxMenu/farground_mountains.png" id="7_kq0yg"]
+[ext_resource type="Texture2D" uid="uid://uotd6a3oxtpu" path="res://assets/bg/ParalaxMenu/midground_mountains.png" id="8_7rvga"]
+[ext_resource type="Texture2D" uid="uid://32hqtiy0hos5" path="res://assets/bg/ParalaxMenu/foreground_mountains.png" id="9_mqn0o"]
+[ext_resource type="PackedScene" uid="uid://bo816iivr0n7u" path="res://player/player.tscn" id="10_j3ubl"]
+[ext_resource type="PackedScene" uid="uid://d4boo2ixdnqp2" path="res://items/coins/SilverCoin/silver_coin.tscn" id="12_t3t11"]
+[ext_resource type="PackedScene" uid="uid://cdlq6id30lp1e" path="res://menus/InGameMenu/in_game_menu.tscn" id="12_tgcp8"]
+[ext_resource type="PackedScene" uid="uid://ctk8wh1akmtfm" path="res://items/coins/GoldCoin/gold_coin.tscn" id="13_f4g65"]
+[ext_resource type="PackedScene" uid="uid://b0lqo8guxmg6y" path="res://items/coins/PlatinumCoin/platinum_coin.tscn" id="14_hgw0l"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_t3t11")
+
+[node name="ParallaxBG" type="ParallaxBackground" parent="."]
+scroll_ignore_camera_zoom = true
+
+[node name="SkyLayer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.02, 0.02)
+motion_mirroring = Vector2(1919, 0)
+
+[node name="SkySprite" type="Sprite2D" parent="ParallaxBG/SkyLayer"]
+position = Vector2(960, 536)
+scale = Vector2(137.14, 0.703)
+texture = ExtResource("2_f4g65")
+region_enabled = true
+region_rect = Rect2(0, 0, 14, 1536)
+
+[node name="FarCloud1Layer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.05, 0.05)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Texture" type="Sprite2D" parent="ParallaxBG/FarCloud1Layer"]
+position = Vector2(1024, 56)
+texture = ExtResource("3_hgw0l")
+
+[node name="FarCloud2Layer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.07, 0.07)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/FarCloud2Layer"]
+position = Vector2(1024, 260)
+texture = ExtResource("4_o468e")
+
+[node name="MidCloud1Layer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.1, 0.1)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/MidCloud1Layer"]
+position = Vector2(1024, 473)
+texture = ExtResource("5_p24im")
+
+[node name="MidCloud2Layer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.15, 0.15)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/MidCloud2Layer"]
+position = Vector2(1024, 606)
+texture = ExtResource("6_oix3x")
+
+[node name="FarMountainsLayer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.2, 0.2)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/FarMountainsLayer"]
+position = Vector2(1024, 807)
+texture = ExtResource("7_kq0yg")
+
+[node name="MidMountainsLayer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.3, 0.3)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/MidMountainsLayer"]
+position = Vector2(1024, 965)
+texture = ExtResource("8_7rvga")
+
+[node name="ForegroundLayer" type="ParallaxLayer" parent="ParallaxBG"]
+motion_scale = Vector2(0.4, 0.4)
+motion_mirroring = Vector2(2048, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBG/ForegroundLayer"]
+position = Vector2(1024, 1022)
+texture = ExtResource("9_mqn0o")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+visible = false
+offset_right = 1920.0
+offset_bottom = 1080.0
+color = Color(0.529412, 0.807843, 0.921569, 1)
+
+[node name="Player" parent="." instance=ExtResource("10_j3ubl")]
+position = Vector2(300, 540)
+
+[node name="InGameMenu" parent="." instance=ExtResource("12_tgcp8")]
+
+[node name="SilverCoin" parent="." instance=ExtResource("12_t3t11")]
+position = Vector2(1128, 352)
+
+[node name="SilverCoin2" parent="." instance=ExtResource("12_t3t11")]
+position = Vector2(1352, 640)
+
+[node name="SilverCoin3" parent="." instance=ExtResource("12_t3t11")]
+position = Vector2(1968, 360)
+
+[node name="SilverCoin4" parent="." instance=ExtResource("12_t3t11")]
+position = Vector2(1960, 792)
+
+[node name="GoldCoin" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(848, 744)
+
+[node name="GoldCoin2" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(2304, 176)
+
+[node name="GoldCoin3" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(3512, 336)
+
+[node name="GoldCoin4" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(3352, 792)
+
+[node name="GoldCoin5" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(2976, 176)
+
+[node name="GoldCoin6" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(2504, 944)
+
+[node name="GoldCoin7" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(1448, 944)
+
+[node name="GoldCoin8" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(2440, 520)
+
+[node name="GoldCoin9" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(2928, 784)
+
+[node name="GoldCoin10" parent="." instance=ExtResource("13_f4g65")]
+position = Vector2(3096, 472)
+
+[node name="PlatinumCoin" parent="." instance=ExtResource("14_hgw0l")]
+position = Vector2(2128, 600)
+
+[node name="PlatinumCoin2" parent="." instance=ExtResource("14_hgw0l")]
+position = Vector2(3432, 616)
+
+[node name="PlatinumCoin3" parent="." instance=ExtResource("14_hgw0l")]
+position = Vector2(4320, 288)
+
+[node name="PlatinumCoin4" parent="." instance=ExtResource("14_hgw0l")]
+position = Vector2(4416, 808)
+
+[node name="PlatinumCoin5" parent="." instance=ExtResource("14_hgw0l")]
+position = Vector2(3960, 544)

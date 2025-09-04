@@ -3,6 +3,7 @@ extends Node2D
 # Используем @onready для безопасной инициализации
 @onready var parallax_bg: ParallaxBackground = $ParallaxBG
 @onready var player: CharacterBody2D = $Player
+@onready var in_game_menu = $InGameMenu
 
 # Настройки фона
 var base_scroll_speed = -300.0  # Базовая скорость прокрутки фона
@@ -10,6 +11,8 @@ var current_scroll_speed = base_scroll_speed
 var speed_multiplier = 1.0  # Множитель скорости для эффектов
 
 func _ready():
+	in_game_menu.start_timer()
+	#in_game_menu.time_up.connect(end_game())
 	# Проверяем инициализацию нод
 	if not parallax_bg:
 		push_error("ParallaxBG node not found in Main scene!")
@@ -30,3 +33,6 @@ func _physics_process(delta):
 # Обработчик изменения скорости от игрока
 func _on_player_speed_factor_changed(factor):
 	speed_multiplier = factor
+
+func end_game() -> void:
+	get_tree().quit()
