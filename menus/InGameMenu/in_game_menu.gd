@@ -31,8 +31,7 @@ func _on_count_down_timeout() -> void:
 		remaining = 0
 		_update_timer_label()
 		cound_down.stop()
-		emit_signal("time_up")
-		return
+		get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
 	_update_timer_label()
 	
 func _update_timer_label() -> void:
