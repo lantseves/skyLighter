@@ -45,7 +45,6 @@ func _ready() -> void:
 	rotation_degrees = 0.0
 
 func _physics_process(delta: float) -> void:
-	print($Camera2D.global_position.y)
 	if is_looping:
 		_process_loop(delta)
 		# столкновения по траектории петли не учитываем
