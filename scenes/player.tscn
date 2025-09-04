@@ -46,3 +46,12 @@ sprite_frames = SubResource("SpriteFrames_3vyb7")
 animation = &"idle"
 autoplay = "idle"
 frame_progress = 0.750042
+
+[node name="Camera2D" type="Camera2D" parent="."]
+offset = Vector2(500, 0)
+process_callback = 0
+limit_top = 0
+limit_bottom = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0
+drag_bottom_margin = 0.18

@@ -96,6 +96,27 @@ color = Color(0.529412, 0.807843, 0.921569, 1)
 position = Vector2(300, 540)
 
 [node name="Coin" parent="." instance=ExtResource("11_ya4ey")]
-position = Vector2(992, 336)
+position = Vector2(944, 536)
+
+[node name="Coin2" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(2928, 576)
+
+[node name="Coin3" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(3408, 768)
+
+[node name="Coin4" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(3248, 416)
+
+[node name="Coin5" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(2512, 656)
+
+[node name="Coin6" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(2152, 336)
+
+[node name="Coin7" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(1832, 632)
+
+[node name="Coin8" parent="." instance=ExtResource("11_ya4ey")]
+position = Vector2(1376, 488)
 
 [node name="InGameMenu" parent="." instance=ExtResource("12_eb6dy")]
