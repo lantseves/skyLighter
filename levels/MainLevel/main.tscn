@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dtcrps3furacw"]
+[gd_scene load_steps=18 format=3 uid="uid://dtcrps3furacw"]
 
 [ext_resource type="Script" uid="uid://cb7e176cxodbg" path="res://levels/MainLevel/main.gd" id="1_t3t11"]
 [ext_resource type="Texture2D" uid="uid://bgpinl7adxyrm" path="res://assets/bg/ParalaxMenu/sky_color.png" id="2_f4g65"]
@@ -14,6 +14,9 @@
 [ext_resource type="PackedScene" uid="uid://cdlq6id30lp1e" path="res://menus/InGameMenu/in_game_menu.tscn" id="12_tgcp8"]
 [ext_resource type="PackedScene" uid="uid://ctk8wh1akmtfm" path="res://items/coins/GoldCoin/gold_coin.tscn" id="13_f4g65"]
 [ext_resource type="PackedScene" uid="uid://b0lqo8guxmg6y" path="res://items/coins/PlatinumCoin/platinum_coin.tscn" id="14_hgw0l"]
+[ext_resource type="PackedScene" uid="uid://c43d2rh0yi3mn" path="res://items/clouds/WhiteCloud/white_cloud.tscn" id="16_oix3x"]
+[ext_resource type="PackedScene" uid="uid://k4pgpuwx4ssu" path="res://items/clouds/DarkCloud/dark_cloud.tscn" id="16_p24im"]
+[ext_resource type="PackedScene" uid="uid://co8fjle5ox6xb" path="res://items/clouds/BlueCloud/blue_cloud.tscn" id="17_oix3x"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_t3t11")
@@ -99,59 +102,93 @@ position = Vector2(300, 540)
 
 [node name="InGameMenu" parent="." instance=ExtResource("12_tgcp8")]
 
-[node name="SilverCoin" parent="." instance=ExtResource("12_t3t11")]
+[node name="Coins" type="Node2D" parent="."]
+
+[node name="SilverCoin" parent="Coins" instance=ExtResource("12_t3t11")]
 position = Vector2(1128, 352)
 
-[node name="SilverCoin2" parent="." instance=ExtResource("12_t3t11")]
+[node name="SilverCoin2" parent="Coins" instance=ExtResource("12_t3t11")]
 position = Vector2(1352, 640)
 
-[node name="SilverCoin3" parent="." instance=ExtResource("12_t3t11")]
+[node name="SilverCoin3" parent="Coins" instance=ExtResource("12_t3t11")]
 position = Vector2(1968, 360)
 
-[node name="SilverCoin4" parent="." instance=ExtResource("12_t3t11")]
+[node name="SilverCoin4" parent="Coins" instance=ExtResource("12_t3t11")]
 position = Vector2(1960, 792)
 
-[node name="GoldCoin" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(848, 744)
 
-[node name="GoldCoin2" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin2" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(2304, 176)
 
-[node name="GoldCoin3" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin3" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(3512, 336)
 
-[node name="GoldCoin4" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin4" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(3352, 792)
 
-[node name="GoldCoin5" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin5" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(2976, 176)
 
-[node name="GoldCoin6" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin6" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(2504, 944)
 
-[node name="GoldCoin7" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin7" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(1448, 944)
 
-[node name="GoldCoin8" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin8" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(2440, 520)
 
-[node name="GoldCoin9" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin9" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(2928, 784)
 
-[node name="GoldCoin10" parent="." instance=ExtResource("13_f4g65")]
+[node name="GoldCoin10" parent="Coins" instance=ExtResource("13_f4g65")]
 position = Vector2(3096, 472)
 
-[node name="PlatinumCoin" parent="." instance=ExtResource("14_hgw0l")]
+[node name="PlatinumCoin" parent="Coins" instance=ExtResource("14_hgw0l")]
 position = Vector2(2128, 600)
 
-[node name="PlatinumCoin2" parent="." instance=ExtResource("14_hgw0l")]
+[node name="PlatinumCoin2" parent="Coins" instance=ExtResource("14_hgw0l")]
 position = Vector2(3432, 616)
 
-[node name="PlatinumCoin3" parent="." instance=ExtResource("14_hgw0l")]
+[node name="PlatinumCoin3" parent="Coins" instance=ExtResource("14_hgw0l")]
 position = Vector2(4320, 288)
 
-[node name="PlatinumCoin4" parent="." instance=ExtResource("14_hgw0l")]
+[node name="PlatinumCoin4" parent="Coins" instance=ExtResource("14_hgw0l")]
 position = Vector2(4416, 808)
 
-[node name="PlatinumCoin5" parent="." instance=ExtResource("14_hgw0l")]
+[node name="PlatinumCoin5" parent="Coins" instance=ExtResource("14_hgw0l")]
 position = Vector2(3960, 544)
+
+[node name="Clouds" type="Node2D" parent="."]
+
+[node name="WhiteCloud" parent="Clouds" instance=ExtResource("16_oix3x")]
+position = Vector2(1896, 608)
+
+[node name="WhiteCloud2" parent="Clouds" instance=ExtResource("16_oix3x")]
+position = Vector2(872, 600)
+
+[node name="WhiteCloud3" parent="Clouds" instance=ExtResource("16_oix3x")]
+position = Vector2(3304, 320)
+
+[node name="DarkCloud" parent="Clouds" instance=ExtResource("16_p24im")]
+position = Vector2(1432, 264)
+
+[node name="DarkCloud2" parent="Clouds" instance=ExtResource("16_p24im")]
+position = Vector2(5216, 896)
+
+[node name="DarkCloud3" parent="Clouds" instance=ExtResource("16_p24im")]
+position = Vector2(5712, 256)
+
+[node name="BlueCloud" parent="Clouds" instance=ExtResource("17_oix3x")]
+position = Vector2(1448, 824)
+
+[node name="BlueCloud2" parent="Clouds" instance=ExtResource("17_oix3x")]
+position = Vector2(2808, 552)
+
+[node name="BlueCloud3" parent="Clouds" instance=ExtResource("17_oix3x")]
+position = Vector2(4648, 416)
+
+[node name="BlueCloud4" parent="Clouds" instance=ExtResource("17_oix3x")]
+position = Vector2(3992, 896)

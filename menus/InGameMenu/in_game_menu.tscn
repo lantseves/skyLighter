@@ -4,6 +4,7 @@
 
 [node name="InGameMenu" type="CanvasLayer"]
 script = ExtResource("1_ioadw")
+start_seconds = 60
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 anchors_preset = 15
