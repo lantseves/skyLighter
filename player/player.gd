@@ -193,3 +193,7 @@ func _update_speed_factor(force := false) -> void:
 	if force or abs(factor - _last_speed_factor) > 0.05:
 		_last_speed_factor = factor
 		emit_signal("speed_factor_changed", factor)
+
+
+func _on_game_director_difficulty_changed(_multiplier: float, _storm_quota: int, _pickup_block_s: float) -> void:
+	pass # Replace with function body. # блокировка по элементов TODO
