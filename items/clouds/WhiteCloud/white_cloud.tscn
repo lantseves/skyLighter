@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://0lv0kk8dlr3h" path="res://assets/icons/cloud_white.png" id="2_6cna5"]
 
 [node name="WhiteCloud" instance=ExtResource("1_ogshk")]
+max_coin = 5
+min_coin = 3
 
 [node name="CloudWhite" type="Sprite2D" parent="." index="0"]
 scale = Vector2(0.486, 0.486)

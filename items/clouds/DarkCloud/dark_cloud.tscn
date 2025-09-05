@@ -5,6 +5,8 @@
 
 [node name="DarkCloud" instance=ExtResource("1_hpmyl")]
 amountSeconds = -7
+max_coin = 8
+min_coin = 5
 
 [node name="CloudWhite" type="Sprite2D" parent="." index="0"]
 self_modulate = Color(0.400698, 0.400698, 0.400698, 1)

@@ -182,7 +182,7 @@ position = Vector2(5216, 896)
 position = Vector2(5712, 256)
 
 [node name="BlueCloud" parent="Clouds" instance=ExtResource("17_oix3x")]
-position = Vector2(1448, 824)
+position = Vector2(1528, 800)
 
 [node name="BlueCloud2" parent="Clouds" instance=ExtResource("17_oix3x")]
 position = Vector2(2808, 552)
