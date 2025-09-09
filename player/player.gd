@@ -9,7 +9,7 @@ const SHIFT_SPEED_ADD := 400.0         # прибавка по X при зажа
 const SPEED_LERP := 5.0                # сглаживание скоростей
 const ROT_LERP := 5.0                  # сглаживание поворота
 const MAX_TILT := 30.0                 # максимум визуального наклона, градусы
-const JUMP_FORCE := -400.0
+const JUMP_FORCE := -700.0             # сила прыжка
 
 # Бусты (короткие режимы с таймером)
 const ZOOM_CLIMB_ACCEL := 600.0        # подъём (вверх)
@@ -20,9 +20,12 @@ const BOOST_TIME := 1.5
 const LOOP_TIME := 2.5
 const LOOP_RADIUS := 250.0
 
+#Размер отступа от верхней и нижней границы
+@export var window_margin = 200
 # Ограничения по высоте (экран/уровень)
-const MAX_Y_POSITION := 100.0
-const MIN_Y_POSITION := 980.0
+var MAX_Y_POSITION := 100.0
+var MIN_Y_POSITION := 980.0
+
 
 # === Состояния ===
 var is_zooming := false
@@ -41,10 +44,18 @@ var loop_start_rotation := 0.0
 # Для событий скорости (чтобы не спамить сигнал)
 var _last_speed_factor := 1.0
 
+func get_player_y() -> float:
+	return self.position.y
+
 func _ready() -> void:
 	rotation_degrees = 0.0
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	MAX_Y_POSITION = window_margin
+	MIN_Y_POSITION = viewport_size.y - window_margin
+	
 
 func _physics_process(delta: float) -> void:
+	InGameVars.current_speed = BASE_SPEED
 	if is_looping:
 		_process_loop(delta)
 		# столкновения по траектории петли не учитываем

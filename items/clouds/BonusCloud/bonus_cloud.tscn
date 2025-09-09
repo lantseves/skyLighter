@@ -3,7 +3,8 @@
 [ext_resource type="PackedScene" uid="uid://dgow448ytiqss" path="res://items/clouds/BaseCloud/base_cloud.tscn" id="1_ogshk"]
 [ext_resource type="Texture2D" uid="uid://0lv0kk8dlr3h" path="res://assets/icons/cloud_white.png" id="2_6cna5"]
 
-[node name="WhiteCloud" instance=ExtResource("1_ogshk")]
+[node name="BonusCloud" instance=ExtResource("1_ogshk")]
+amountSeconds = 2
 max_coin = 5
 min_coin = 3
 

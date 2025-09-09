@@ -10,80 +10,91 @@
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
-anchors_preset = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource("1_plj4j")
 
-[node name="MainContent" type="HBoxContainer" parent="."]
+[node name="MenuParallax" parent="." instance=ExtResource("7_0cq3m")]
+scale = Vector2(1.8, 1.8)
+transform = Transform2D(1.8, 0, 0, 1.8, 0, 0)
+design_size = Vector2(1080, 1920)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -202.0
+offset_left = -150.0
 offset_top = -140.0
-offset_right = 202.0
+offset_right = 150.0
 offset_bottom = 140.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="MainContent" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
 theme_override_constants/separation = 60
 
-[node name="MenuButtons" type="VBoxContainer" parent="MainContent"]
+[node name="MenuButtons" type="VBoxContainer" parent="VBoxContainer/MainContent"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ArcadeButton" type="Button" parent="MainContent/MenuButtons"]
+[node name="ArcadeButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
 custom_minimum_size = Vector2(300, 80)
 layout_mode = 2
 text = "Аркада"
 
-[node name="EnduranceButton" type="Button" parent="MainContent/MenuButtons"]
+[node name="EnduranceButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
 custom_minimum_size = Vector2(300, 80)
 layout_mode = 2
 text = "Выносливость"
 
-[node name="TestButton" type="Button" parent="MainContent/MenuButtons"]
+[node name="TestButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
 custom_minimum_size = Vector2(300, 80)
 layout_mode = 2
 text = "Зачет"
 
-[node name="PlayerInfo" type="HBoxContainer" parent="."]
-layout_mode = 0
-offset_left = 64.0
-offset_top = 64.0
-offset_right = 366.0
-offset_bottom = 191.0
+[node name="PlayerInfoMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+
+[node name="PlayerInfo" type="HBoxContainer" parent="PlayerInfoMarginContainer"]
+layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="PlayerData" type="VBoxContainer" parent="PlayerInfo"]
+[node name="PlayerData" type="VBoxContainer" parent="PlayerInfoMarginContainer/PlayerInfo"]
 layout_mode = 2
 
-[node name="Avatar" type="TextureRect" parent="PlayerInfo/PlayerData"]
+[node name="Avatar" type="TextureRect" parent="PlayerInfoMarginContainer/PlayerInfo/PlayerData"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 texture = ExtResource("2_8m51k")
 
-[node name="PlayerName" type="Label" parent="PlayerInfo/PlayerData"]
+[node name="PlayerName" type="Label" parent="PlayerInfoMarginContainer/PlayerInfo/PlayerData"]
 layout_mode = 2
 text = "Пилот Игорь"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerInfo"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerInfoMarginContainer/PlayerInfo"]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="HeartIcon" type="TextureRect" parent="PlayerInfo/VBoxContainer"]
+[node name="HeartIcon" type="TextureRect" parent="PlayerInfoMarginContainer/PlayerInfo/VBoxContainer"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 texture = ExtResource("3_7b8hp")
 
-[node name="LifeCount" type="Label" parent="PlayerInfo/VBoxContainer/HeartIcon"]
+[node name="LifeCount" type="Label" parent="PlayerInfoMarginContainer/PlayerInfo/VBoxContainer/HeartIcon"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -101,42 +112,59 @@ text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LifeData" type="HBoxContainer" parent="PlayerInfo"]
+[node name="LifeData" type="HBoxContainer" parent="PlayerInfoMarginContainer/PlayerInfo"]
 layout_mode = 2
 
-[node name="TimerLabel" type="Label" parent="PlayerInfo/LifeData"]
+[node name="TimerLabel" type="Label" parent="PlayerInfoMarginContainer/PlayerInfo/LifeData"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "00:00"
 
-[node name="StarContainer" type="HBoxContainer" parent="."]
+[node name="StarsMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -118.0
+offset_bottom = 80.0
+grow_horizontal = 0
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+
+[node name="StarContainer" type="HBoxContainer" parent="StarsMarginContainer"]
 layout_mode = 2
-offset_left = 1720.0
-offset_top = 64.0
-offset_right = 1848.0
-offset_bottom = 158.0
 theme_override_constants/separation = 20
 
-[node name="StarCount" type="Label" parent="StarContainer"]
+[node name="StarCount" type="Label" parent="StarsMarginContainer/StarContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "0"
 
-[node name="StarIcon" type="TextureRect" parent="StarContainer"]
+[node name="StarIcon" type="TextureRect" parent="StarsMarginContainer/StarContainer"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 texture = ExtResource("4_kgyxf")
 
-[node name="ExitButton" type="Control" parent="."]
+[node name="ExitMarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="ExitButton" type="Control" parent="ExitMarginContainer"]
 custom_minimum_size = Vector2(80, 80)
-anchors_preset = 0
-offset_left = 1776.0
-offset_top = 944.0
-offset_right = 1856.0
-offset_bottom = 1024.0
+layout_mode = 2
 script = ExtResource("5_v6bm3")
 
-[node name="ExitBtn" type="TextureButton" parent="ExitButton"]
+[node name="ExitBtn" type="TextureButton" parent="ExitMarginContainer/ExitButton"]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 1
 anchors_preset = 8
@@ -153,7 +181,5 @@ grow_vertical = 2
 texture_normal = ExtResource("6_mhmke")
 stretch_mode = 3
 
-[node name="MenuParallax" parent="." instance=ExtResource("7_0cq3m")]
-
-[connection signal="pressed" from="MainContent/MenuButtons/ArcadeButton" to="." method="_on_arcade_button_pressed"]
-[connection signal="pressed" from="ExitButton/ExitBtn" to="ExitButton" method="_on_exit_btn_pressed"]
+[connection signal="pressed" from="VBoxContainer/MainContent/MenuButtons/ArcadeButton" to="." method="_on_arcade_button_pressed"]
+[connection signal="pressed" from="ExitMarginContainer/ExitButton/ExitBtn" to="ExitMarginContainer/ExitButton" method="_on_exit_btn_pressed"]

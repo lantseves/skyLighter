@@ -1,7 +1,7 @@
 extends Node2D
 
 # Используем @onready для безопасной инициализации
-@onready var parallax_bg: ParallaxBackground = $ParallaxBG
+@onready var parallax_bg: ParallaxBackground = $MenuParallax
 @onready var player: CharacterBody2D = $Player
 @onready var in_game_menu = $InGameMenu
 

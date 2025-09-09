@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://k4pgpuwx4ssu"]
+
+[ext_resource type="PackedScene" uid="uid://dgow448ytiqss" path="res://items/clouds/BaseCloud/base_cloud.tscn" id="1_x7kse"]
+[ext_resource type="Texture2D" uid="uid://0lv0kk8dlr3h" path="res://assets/icons/cloud_white.png" id="2_6v4l6"]
+
+[node name="PenaltyCloud" instance=ExtResource("1_x7kse")]
+amountSeconds = -3
+max_coin = 8
+min_coin = 5
+
+[node name="CloudWhite" type="Sprite2D" parent="." index="0"]
+self_modulate = Color(0.400698, 0.400698, 0.400698, 1)
+scale = Vector2(0.486, 0.486)
+texture = ExtResource("2_6v4l6")
