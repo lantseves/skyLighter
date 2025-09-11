@@ -1,10 +1,14 @@
-[gd_scene load_steps=9 format=3 uid="uid://dtcrps3furacw"]
+[gd_scene load_steps=13 format=3 uid="uid://dtcrps3furacw"]
 
 [ext_resource type="Script" uid="uid://cb7e176cxodbg" path="res://levels/MainLevel/main.gd" id="1_t3t11"]
 [ext_resource type="PackedScene" uid="uid://co8fjle5ox6xb" path="res://items/clouds/EmptyCloud/empty_cloud.tscn" id="6_t3t11"]
 [ext_resource type="PackedScene" uid="uid://k4pgpuwx4ssu" path="res://items/clouds/PenaltyCloud/penalty_cloud.tscn" id="7_f4g65"]
+[ext_resource type="Script" uid="uid://cc8u1440wsv0g" path="res://levels/MainLevel/coin_factory.gd" id="9_v0klp"]
 [ext_resource type="PackedScene" uid="uid://bo816iivr0n7u" path="res://player/player.tscn" id="10_j3ubl"]
+[ext_resource type="PackedScene" uid="uid://d4boo2ixdnqp2" path="res://items/coins/SilverCoin/silver_coin.tscn" id="10_t3t11"]
+[ext_resource type="PackedScene" uid="uid://ctk8wh1akmtfm" path="res://items/coins/GoldCoin/gold_coin.tscn" id="11_f4g65"]
 [ext_resource type="PackedScene" uid="uid://304f62dpv5g1" path="res://menus/MainMenu/menu_parallax.tscn" id="12_f4g65"]
+[ext_resource type="PackedScene" uid="uid://b0lqo8guxmg6y" path="res://items/coins/PlatinumCoin/platinum_coin.tscn" id="12_hgw0l"]
 [ext_resource type="Script" uid="uid://cic64mqgc4bfq" path="res://levels/MainLevel/cloud_factory.gd" id="12_t3t11"]
 [ext_resource type="PackedScene" uid="uid://cdlq6id30lp1e" path="res://menus/InGameMenu/in_game_menu.tscn" id="12_tgcp8"]
 [ext_resource type="PackedScene" uid="uid://c43d2rh0yi3mn" path="res://items/clouds/BonusCloud/bonus_cloud.tscn" id="16_oix3x"]
@@ -31,3 +35,11 @@ position = Vector2(-1448, 0)
 [node name="MenuParallax" parent="." instance=ExtResource("12_f4g65")]
 scale = Vector2(1.8, 1.8)
 transform = Transform2D(1.8, 0, 0, 1.8, 0, 0)
+
+[node name="CoinFactory" type="Node2D" parent="."]
+script = ExtResource("9_v0klp")
+coin_silver_scene = ExtResource("10_t3t11")
+coin_gold_scene = ExtResource("11_f4g65")
+coin_platinum_scene = ExtResource("12_hgw0l")
+
+[node name="Coins" type="Node2D" parent="CoinFactory"]

@@ -6,11 +6,12 @@ extends Node2D
 @export var cloud_empty_scene: PackedScene
 
 # --- ГЕОМЕТРИЯ/СПАВН ---
-@export var window_margin: float = 300.0
+@export var window_margin: float = 350.0
 @export var spawn_x: float = 1100.0               # базовый X спавна (прибавится к позиции игрока)
 @export var spawn_on_ready: bool = true
 @onready var player: Node2D = $"../Player"          # двигающийся «маяк» спавна
 @onready var cloud_container: Node2D = $Clouds
+@onready var coin_factory: Node2D = $"../CoinFactory"
 
 @onready var min_y: float = window_margin
 @onready var max_y: float = get_viewport().get_visible_rect().size.y - window_margin
@@ -23,7 +24,6 @@ extends Node2D
 @export var min_px_floor: float = 32.0               # нижняя граница интервала (страховка)
 
 # --- ВНУТРЕННЕЕ ---
-enum CloudType { PENALTY, BONUS, EMPTY }
 var _rng := RandomNumberGenerator.new()
 
 #смещение для penalty cloud
@@ -82,11 +82,11 @@ func _spawn_one() -> void:
 	var kind := _pick_cloud_type_norm()
 	var scene: PackedScene
 	match kind:
-		CloudType.PENALTY:
+		Enums.CloudType.PENALTY:
 			scene = cloud_penalty_scene
-		CloudType.BONUS:
+		Enums.CloudType.BONUS:
 			scene = cloud_bonus_scene
-		CloudType.EMPTY:
+		Enums.CloudType.EMPTY:
 			scene = cloud_empty_scene
 		_:
 			scene = cloud_empty_scene
@@ -97,12 +97,13 @@ func _spawn_one() -> void:
 
 	cloud.position = Vector2(x, y)
 	cloud_container.add_child(cloud)
+	coin_factory.spawn_for_cloud(cloud, kind)
 
-func _calculeta_position_y(cloudType: CloudType) -> float:
+func _calculeta_position_y(cloudType: Enums.CloudType) -> float:
 	match cloudType:
-		CloudType.PENALTY:
+		Enums.CloudType.PENALTY:
 			return _calculate_position_y(penalty_spawn_offset)
-		CloudType.BONUS:
+		Enums.CloudType.BONUS:
 			return _calculate_position_y(bonus_spawn_offset)
 		_: 
 			return _rng.randf_range(min_y, max_y)
@@ -114,7 +115,7 @@ func _calculate_position_y(offset: float) -> float:
 # ----------------------
 # ВЫБОР ТИПА ОБЛАКА (нормализовано до 100)
 # ----------------------
-func _pick_cloud_type_norm() -> CloudType:
+func _pick_cloud_type_norm() -> Enums.CloudType:
 	var w_empty   := 55.0 - 0.5 * InGameVars.difficulty_level
 	var w_bonus   := 30.0 - 1.0 * InGameVars.difficulty_level
 	var w_penalty := 15.0 + 1.5 * InGameVars.difficulty_level
@@ -134,8 +135,8 @@ func _pick_cloud_type_norm() -> CloudType:
 
 	var roll := _rng.randf_range(0.0, 100.0)
 	if roll < w_penalty:
-		return CloudType.PENALTY
+		return Enums.CloudType.PENALTY
 	elif roll < w_penalty + w_bonus:
-		return CloudType.BONUS
+		return Enums.CloudType.BONUS
 	else:
-		return CloudType.EMPTY
+		return Enums.CloudType.EMPTY
