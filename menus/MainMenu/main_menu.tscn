@@ -22,7 +22,6 @@ script = ExtResource("1_plj4j")
 [node name="MenuParallax" parent="." instance=ExtResource("7_0cq3m")]
 scale = Vector2(1.8, 1.8)
 transform = Transform2D(1.8, 0, 0, 1.8, 0, 0)
-design_size = Vector2(1080, 1920)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1

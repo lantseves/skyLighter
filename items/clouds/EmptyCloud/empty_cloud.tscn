@@ -5,7 +5,6 @@
 
 [node name="EmptyCloud" instance=ExtResource("1_4ew44")]
 amountSeconds = 0
-max_coin = 3
 
 [node name="CloudWhite" type="Sprite2D" parent="." index="0"]
 self_modulate = Color(0.2552, 0.640493, 0.88, 0.647059)

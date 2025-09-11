@@ -40,8 +40,6 @@ var _last_progress_x: float = 0.0
 
 func _ready() -> void:
 	_rng.randomize()
-
-	var vp = get_viewport().get_visible_rect().size
 	_last_progress_x = player.global_position.x
 	_schedule_next()
 
