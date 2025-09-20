@@ -7,7 +7,7 @@ extends Node2D
 
 # --- ГЕОМЕТРИЯ/СПАВН ---
 @export var window_margin: float = 350.0
-@export var spawn_x: float = 1100.0               # базовый X спавна (прибавится к позиции игрока)
+@onready var spawn_x: float = get_viewport().get_visible_rect().size.x + 300         # базовый X спавна (прибавится к позиции игрока)
 @export var spawn_on_ready: bool = true
 @onready var player: Node2D = $"../Player"          # двигающийся «маяк» спавна
 @onready var cloud_container: Node2D = $Clouds

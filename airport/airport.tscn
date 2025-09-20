@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://h7gfq0jagijr"]
+
+[ext_resource type="Texture2D" uid="uid://beqqpntkwlltr" path="res://assets/airport/airport_building_no_skyline(1).png" id="1_n2svr"]
+[ext_resource type="Texture2D" uid="uid://cpi7jg4160xq4" path="res://assets/airport/runway_only.png" id="2_5aavr"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vymbo"]
+size = Vector2(784, 20)
+
+[node name="Airport" type="StaticBody2D"]
+collision_layer = 8
+
+[node name="AirportBuildingNoSkyline(1)" type="Sprite2D" parent="."]
+scale = Vector2(0.650507, 0.650506)
+texture = ExtResource("1_n2svr")
+
+[node name="RunwayOnly" type="Sprite2D" parent="."]
+position = Vector2(152, 24)
+scale = Vector2(0.429688, 0.429688)
+texture = ExtResource("2_5aavr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(152, 187)
+scale = Vector2(1, 2)
+shape = SubResource("RectangleShape2D_vymbo")
