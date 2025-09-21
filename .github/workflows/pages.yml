@@ -26,36 +26,34 @@ jobs:
 
       - name: Prepare web build
         run: |
-	    set -euo pipefail
+          set -euo pipefail
 
-	    # Копируем билд
-	    rm -rf dist && mkdir dist
-	    cp -R build-web/* dist/ || true
+          # Скопировать билд Godot из build-web/ в dist/
+          rm -rf dist && mkdir dist
+          cp -R build-web/* dist/ || true
 
-	    # Подстрахуемся: покажем, что в dist
-	    echo "---- dist listing ----"
-	    ls -la dist || true
+          echo "---- dist listing ----"
+          ls -la dist || true
 
-	    # Находим HTML (Godot часто называет его как <Project>.html)
-	    HTML_FILE="$(ls dist/*.html | head -n1 || true)"
-	    if [ -z "${HTML_FILE}" ]; then
-	      echo "ERROR: HTML not found in dist/*.html"
-	      exit 1
-	    fi
-	    echo "Using HTML_FILE=${HTML_FILE}"
+          # Найти HTML (Godot может назвать его как <Project>.html)
+          HTML_FILE="$(ls dist/*.html | head -n1 || true)"
+          if [ -z "${HTML_FILE}" ]; then
+            echo "ERROR: HTML not found in dist/*.html"
+            exit 1
+          fi
+          echo "Using HTML_FILE=${HTML_FILE}"
 
-	    # Версия для cache-busting
-	    VER="${GITHUB_SHA::8}"
+          # Версия для кэш-бастинга (короткий SHA коммита)
+          VER="${GITHUB_SHA::8}"
 
-	    # Добавляем ?v=<VER> ко всем ссылкам на .js/.wasm/.pck/.zip
-	    # Правим и src= и href=
-	    sed -i -E "s|(src=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g"  "${HTML_FILE}"
-	    sed -i -E "s|(href=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g" "${HTML_FILE}"
+          # Добавить ?v=<VER> к ссылкам на ассеты (.js/.wasm/.pck/.zip)
+          sed -i -E "s|(src=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g"  "${HTML_FILE}"
+          sed -i -E "s|(href=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g" "${HTML_FILE}"
 
-	    # Рекомендуется отключить Jekyll на Pages (на всякий случай)
-	    touch dist/.nojekyll
+          # Отключить Jekyll на Pages (на всякий случай)
+          touch dist/.nojekyll
 
-	    echo "Patched ${HTML_FILE} with ?v=${VER}"
+          echo "Patched ${HTML_FILE} with ?v=${VER}"
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -68,4 +66,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
