@@ -1,0 +1,52 @@
+name: Deploy Godot Web to Pages (with cache-busting)
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare web build
+        run: |
+          set -euo pipefail
+          # Копируем билд в dist/
+          rm -rf dist && mkdir dist
+          cp -R build-web/* dist/
+
+          # Короткий SHA коммита — как версия для busting
+          VER="${GITHUB_SHA::8}"
+
+          # Добавим ?v=<VER> ко всем ссылкам на .js/.wasm/.pck в index.html
+          sed -i -E "s/(src=\"[^\"]+\.(js|wasm|pck))\"/\1?v=${VER}\"/g" dist/index.html
+          sed -i -E "s/(href=\"[^\"]+\.(js|wasm|pck))\"/\1?v=${VER}\"/g" dist/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
