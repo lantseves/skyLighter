@@ -1,4 +1,4 @@
-name: Deploy Godot Web to Pages (with cache-busting)
+name: Deploy Godot Web to Pages (with cache-busting, fixed sed)
 
 on:
   push:
@@ -46,9 +46,10 @@ jobs:
           # Версия для кэш-бастинга (короткий SHA коммита)
           VER="${GITHUB_SHA::8}"
 
-          # Добавить ?v=<VER> к ссылкам на ассеты (.js/.wasm/.pck/.zip)
-          sed -i -E "s|(src=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g"  "${HTML_FILE}"
-          sed -i -E "s|(href=\"[^\"]+\.(js|wasm|pck|zip))\"|\1?v=${VER}\"|g" "${HTML_FILE}"
+          # GNU sed: используем разделитель '@', чтобы не конфликтовать с '|' в (js|wasm|pck|zip)
+          # Добавим ?v=<VER> ко всем ссылкам на ассеты (.js/.wasm/.pck/.zip)
+          sed -i -E 's@(src="[^"]+\.(js|wasm|pck|zip))"@\1?v='"${VER}"'"@g'  "${HTML_FILE}"
+          sed -i -E 's@(href="[^"]+\.(js|wasm|pck|zip))"@\1?v='"${VER}"'"@g' "${HTML_FILE}"
 
           # Отключить Jekyll на Pages (на всякий случай)
           touch dist/.nojekyll
