@@ -11,39 +11,46 @@ const ROT_LERP := 5.0                        # Коэффициент сглаж
 const MAX_TILT := 30.0                       # Максимальный визуальный наклон самолёта (в градусах), чтобы не «ломать» спрайт
 const JUMP_FORCE := -700.0                   # Импульс прыжка/рывка вверх (отрицательное Y — вверх в Godot)
 
+
 # Бусты (короткие режимы с таймером)
 const ZOOM_CLIMB_ACCEL := 600.0              # Вертикальное ускорение для «зоом-клайма» (резкий подъём)
 const DIVE_BOOST_ACCEL := 500.0              # Вертикальное ускорение для «дайв-буста» (резкое пикирование)
 const BOOST_TIME := 1.5                      # Длительность эффектов буста (в секундах)
+
+# Взлёт (авторазгон после первого клика)
+const TAKEOFF_TIME := 2.0                    # Длительность авторазгона (сек.)
+const START_JUMP_FORCE := -1500.0
 
 # Петля
 const LOOP_TIME := 2.5                       # Время выполнения петли (полный круг), секунды
 const LOOP_RADIUS := 250.0                   # Радиус окружности, по которой летим, когда крутим петлю
 
 #Размер отступа от верхней и нижней границы
-@export var window_margin = 200              # Экспортный параметр: отступ сверху/снизу, чтобы не выходить за видимую область
+@export var window_margin: float = 200       # Экспортный параметр: отступ сверху/снизу, чтобы не выходить за видимую область
 
 # Ограничения по высоте (экран/уровень)
 var MAX_Y_POSITION :float                # Верхняя граница допустимой высоты (будет переопределена в _ready)
 var MIN_Y_POSITION :float                # Нижняя граница допустимой высоты (будет переопределена в _ready)
 
 # === Состояния ===
-var is_zooming := false                      # Флаг: выполняется ли сейчас «зоом-клайм» (подъём с бустом)
-var is_diving := false                       # Флаг: выполняется ли сейчас «дайв-буст» (пикирование с бустом)
-var is_looping := false                      # Флаг: крутим ли сейчас петлю
-var can_control := true     
-var is_start_position := true                 # Можно ли сейчас принимать ввод (во время бустов/петли — false)
+var is_zooming: bool = false                 # Флаг: выполняется ли сейчас «зоом-клайм» (подъём с бустом)
+var is_diving: bool = false                  # Флаг: выполняется ли сейчас «дайв-буст» (пикирование с бустом)
+var is_looping: bool = false                 # Флаг: крутим ли сейчас петлю
+var can_control: bool = true     
+var is_start_position: bool = true            # Можно ли сейчас принимать ввод (во время бустов/петли — false)
+var is_takeoff: bool = false                 # Флаг: активен ли сценарий авторазгона/взлёта
+var _takeoff_elapsed: float = 0.0            # Сколько прошло времени с начала взлёта
 
 var target_velocity: Vector2 = Vector2(BASE_SPEED, 0.0)  # Целевая скорость, к которой мы сглаженно тянем фактическую velocity
 var target_rotation_deg := 0.0                           # Целевой визуальный угол наклона (в градусах), к нему сглаженно тянемся
 
 # Петля
-var loop_progress := 0.0                     # От 0 до 1 — прогресс выполнения петли за LOOP_TIME
+var loop_progress: float = 0.0               # От 0 до 1 — прогресс выполнения петли за LOOP_TIME
 var loop_center := Vector2.ZERO              # Центр окружности для петли (над текущей позицией на радиус)
-var loop_start_rotation := 0.0               # Запоминаем базовый поворот при старте петли, чтобы анимировать вращение
+var loop_start_rotation: float = 0.0         # Запоминаем базовый поворот при старте петли, чтобы анимировать вращение
 
 # Для событий скорости (чтобы не спамить сигнал)
-var _last_speed_factor := 1.0                # Последний отправленный наружу «фактор скорости» (для отсечки мелких изменений)
+var _last_speed_factor: float = 1.0          # Последний отправленный наружу «фактор скорости» (для отсечки мелких изменений)
 
 func get_player_y() -> float:                # Публичный геттер: отдать текущую высоту игрока (может пригодиться другим узлам)
 	return self.position.y                   # Возвращаем Y-позицию узла
@@ -57,9 +64,15 @@ func _ready() -> void:                       # Вызывается при вх�
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
 		if Input.is_action_just_pressed("jump"):
-			is_start_position = false
-		return;
-	InGameVars.current_speed = BASE_SPEED    # Кладём текущую «базовую» скорость в глобальную переменную (для других систем)
+			_start_takeoff()
+		return
+
+	# Этап авторазгона: игнорируем ввод и управляем скоростями сами
+	if is_takeoff:
+		_process_takeoff(delta)
+		return
+
+	InGameVars.current_speed = target_velocity.x    # Текущая горизонтальная скорость для глобальных расчётов
 	if is_looping:                           # Если сейчас крутим петлю…
 		_process_loop(delta)                 # …двигаем вручную по окружности
 		# столкновения по траектории петли не учитываем
@@ -95,6 +108,8 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 # === Ввод и режимы ===
 
 func _handle_input() -> void:                # Сбор инпута (нужны Actions в Input Map: jet_dash, jump, zoom_climb, dive_boost, loop)
+	if is_takeoff:
+		return                               # Во время взлёта пользователю управление недоступно
 	# Базовая горизонтальная скорость + Shift-ускорение (удержание jet_dash)
 	var desired_x := BASE_SPEED              # Начинаем с базовой скорости
 	if Input.is_action_pressed("jet_dash"):  # Если зажата клавиша/кнопка «ускорения»…
@@ -117,9 +132,52 @@ func _handle_input() -> void:                # Сбор инпута (нужны
 	if Input.is_action_just_pressed("loop") and not is_looping:        # Начать петлю (по кнопке), если ещё не крутим
 		_start_loop()                        # Переходим в режим петли
 
-func _start_jump() -> void:                   # Разовый импульс вверх
-	target_velocity.y = JUMP_FORCE           # Устанавливаем целевую вертикальную скорость резко вверх
-	target_rotation_deg = -15.0              # Слегка наклоняем нос вниз для визуальной динамики
+# === Взлёт (авторазгон) ===
+func _start_takeoff() -> void:
+	is_start_position = false
+	is_takeoff = true
+	can_control = false
+	_takeoff_elapsed = 0.0
+	# Начинаем с полной остановки; вертикального импульса нет во время авторазгона
+	velocity = Vector2.ZERO
+	target_velocity = Vector2(0.0, 0.0)
+	target_rotation_deg = 0.0
+	_update_speed_factor(true)
+
+func _process_takeoff(delta: float) -> void:
+	_takeoff_elapsed += delta
+	var t := clampf(_takeoff_elapsed / TAKEOFF_TIME, 0.0, 1.0)
+
+	# Плавный разгон по X: 0 -> BASE_SPEED за 1 секунду (без подъёма по Y)
+	var desired_x := lerpf(0.0, BASE_SPEED, t)
+	target_velocity.x = desired_x
+	target_velocity.y = 0.0
+	target_rotation_deg = 0.0
+
+	# Применяем сглажение и движение
+	velocity = velocity.lerp(target_velocity, SPEED_LERP * delta)
+	position.y = clamp(position.y, MAX_Y_POSITION, MIN_Y_POSITION)
+	move_and_slide()
+
+	InGameVars.current_speed = target_velocity.x
+	_update_speed_factor()
+
+	if t >= 1.0:
+		_end_takeoff()
+
+func _end_takeoff() -> void:
+	is_takeoff = false
+	can_control = true
+	target_rotation_deg = 0.0
+	# Зафиксируем базовую цель по X, затем выполняем единичный прыжок и отдаём управление
+	target_velocity.x = BASE_SPEED
+	target_velocity.y = 0.0
+	_update_speed_factor(true)
+	_start_jump(START_JUMP_FORCE)       # Слегка наклоняем нос вниз для визуальной динамики
+	
+func _start_jump(velocity: float = JUMP_FORCE) -> void:
+	target_velocity.y = velocity         # Устанавливаем целевую вертикальную скорость резко вверх
+	target_rotation_deg = -15.0
 
 func _start_zoom() -> void:                   # Запуск режима «зоом-клайм» (подъём)
 	is_zooming = true                        # Помечаем состояние
