@@ -54,6 +54,24 @@ func _on_timer_reached_zero() -> void:
 		finish_airport_shown = true
 	else:
 		print("Finish airport already shown or not found!")
+	
+	# Запускаем режим приземления для игрока
+	if player:
+		# Передаём позицию финишного аэропорта для точного определения целевой полосы
+		var target_position: Vector2 = Vector2.ZERO
+		if finish_airport and finish_airport.visible:
+			target_position = finish_airport.position
+		elif finish_airport:
+			# Если аэропорт еще не показан, используем его текущую позицию (он будет показан выше)
+			target_position = finish_airport.position
+		else:
+			# Используем стартовый аэропорт как запасной вариант
+			var start_airport: Node2D = $Stat_airport
+			if start_airport:
+				target_position = start_airport.position
+		
+		player.start_landing(target_position)
+		print("Режим приземления активирован для игрока. Целевая позиция: ", target_position)
 
 func _show_finish_airport() -> void:
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size

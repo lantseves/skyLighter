@@ -40,6 +40,17 @@ var can_control: bool = true
 var is_start_position: bool = true            # Можно ли сейчас принимать ввод (во время бустов/петли — false)
 var is_takeoff: bool = false                 # Флаг: активен ли сценарий авторазгона/взлёта
 var _takeoff_elapsed: float = 0.0            # Сколько прошло времени с начала взлёта
+var is_landing: bool = false                 # Флаг: активен ли режим приземления (таймер достиг нуля)
+var is_on_runway: bool = false               # Флаг: касается ли самолёт полосы
+var _was_on_runway: bool = false             # Флаг: касался ли самолёт полосы в предыдущем кадре
+var _target_runway_y: float = 0.0            # Целевая Y позиция полосы для приземления
+var _target_runway_x: float = 0.0            # Целевая X позиция полосы для приземления
+var _last_jump_time: float = 0.0             # Время последнего прыжка (для ограничения частоты)
+var _landing_stop_timer: float = 0.0         # Таймер остановки после приземления
+var _has_landed: bool = false                # Флаг: приземлился ли самолёт и начал остановку
+var _menu_transition_started: bool = false   # Флаг: начался ли переход в меню (чтобы не вызывать несколько раз)
+const LANDING_JUMP_COOLDOWN: float = 1.0     # Минимальное время между прыжками при приземлении (увеличено)
+const LANDING_STOP_TIME: float = 1.0         # Время остановки после приземления перед переходом в меню
 
 var target_velocity: Vector2 = Vector2(BASE_SPEED, 0.0)  # Целевая скорость, к которой мы сглаженно тянем фактическую velocity
 var target_rotation_deg := 0.0                           # Целевой визуальный угол наклона (в градусах), к нему сглаженно тянемся
@@ -51,6 +62,8 @@ var loop_start_rotation: float = 0.0         # Запоминаем базовы
 
 # Для событий скорости (чтобы не спамить сигнал)
 var _last_speed_factor: float = 1.0          # Последний отправленный наружу «фактор скорости» (для отсечки мелких изменений)
+
+const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней границы для предотвращения улёта за экран
 
 func get_player_y() -> float:                # Публичный геттер: отдать текущую высоту игрока (может пригодиться другим узлам)
 	return self.position.y                   # Возвращаем Y-позицию узла
@@ -78,6 +91,11 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 		# столкновения по траектории петли не учитываем
 		move_and_collide(Vector2.ZERO)       # Нулевое перемещение, чтобы не обрабатывались стандартные слайды/коллизии
 		return                               # Выходим: обычную физику в петле не считаем
+
+	# Режим приземления: таймер достиг нуля
+	if is_landing:
+		_process_landing(delta)
+		return
 
 	if can_control:                          # Если управление разрешено…
 		_handle_input()                      # …обрабатываем ввод (скорость по X, прыжок, бусты, старт петли)
@@ -269,3 +287,360 @@ func _update_speed_factor(force := false) -> void:      # Отправка си�
 
 func _on_game_director_difficulty_changed(_multiplier: float, _storm_quota: int, _pickup_block_s: float) -> void:
 	pass # Replace with function body. # блокировка по элементов TODO  # Заглушка под реакцию на изменение сложности игры (подстройка параметров)
+
+# === Режим приземления ===
+func start_landing(target_runway_position: Vector2 = Vector2.ZERO) -> void:
+	"""Запускает режим приземления: отключает управление и включает гравитацию"""
+	is_landing = true
+	can_control = false
+	is_zooming = false
+	is_diving = false
+	is_looping = false
+	is_on_runway = false
+	_was_on_runway = false
+	_last_jump_time = 0.0
+	_landing_stop_timer = 0.0
+	_has_landed = false
+	_menu_transition_started = false
+	
+	# Определяем целевую позицию полосы
+	if target_runway_position != Vector2.ZERO:
+		# Если передана позиция аэропорта, используем её
+		_target_runway_x = target_runway_position.x + 152.0  # Полоса находится на X = airport_x + 152
+		_target_runway_y = target_runway_position.y + 187.0  # Полоса находится на Y = airport_y + 187
+		print("Начало приземления: целевая позиция полосы задана: X=", _target_runway_x, " Y=", _target_runway_y)
+	else:
+		# Иначе находим аэропорт самостоятельно
+		_find_target_runway()
+		print("Начало приземления: целевая позиция полосы найдена: X=", _target_runway_x, " Y=", _target_runway_y)
+	
+	print("Начало приземления: управление отключено")
+
+func _find_target_runway() -> void:
+	"""Находит ближайший аэропорт (финишный или стартовый) для определения целевой высоты"""
+	var scene_tree: SceneTree = get_tree()
+	if not scene_tree:
+		# Используем значение по умолчанию если не можем найти сцену
+		_target_runway_x = 336.0 + 152.0
+		_target_runway_y = 1698.0 + 187.0
+		return
+	
+	var root: Node = scene_tree.get_root()
+	if not root:
+		_target_runway_x = 336.0 + 152.0
+		_target_runway_y = 1698.0 + 187.0
+		return
+	
+	# Ищем финишный аэропорт
+	var finish_airport: Node2D = root.get_node_or_null("Main/FinishAirport")
+	if finish_airport and finish_airport.visible:
+		# Полоса находится на позиции аэропорта + смещение полосы (152, 187) относительно аэропорта
+		_target_runway_x = finish_airport.position.x + 152.0
+		_target_runway_y = finish_airport.position.y + 187.0
+		print("Найден финишный аэропорт на X: ", _target_runway_x, " Y: ", _target_runway_y)
+		return
+	
+	# Если финишный аэропорт не найден, используем стартовый
+	var start_airport: Node2D = root.get_node_or_null("Main/Stat_airport")
+	if start_airport:
+		_target_runway_x = start_airport.position.x + 152.0
+		_target_runway_y = start_airport.position.y + 187.0
+		print("Найден стартовый аэропорт на X: ", _target_runway_x, " Y: ", _target_runway_y)
+		return
+	
+	# Если ничего не найдено, используем значение по умолчанию
+	_target_runway_x = 336.0 + 152.0
+	_target_runway_y = 1698.0 + 187.0
+	print("Аэропорт не найден, используется значение по умолчанию: X=", _target_runway_x, " Y=", _target_runway_y)
+
+func _process_landing(delta: float) -> void:
+	"""Обрабатывает физику приземления: падение под гравитацией и движение по полосе"""
+	# Если уже приземлились и идёт остановка - обрабатываем остановку
+	if _has_landed:
+		_landing_stop_timer += delta
+		
+		# Плавно останавливаем самолёт
+		target_velocity.x = lerpf(target_velocity.x, 0.0, delta * 2.0)
+		target_velocity.y = 0.0
+		velocity = velocity.lerp(target_velocity, SPEED_LERP * delta)
+		
+		# Выравниваем самолёт горизонтально
+		target_rotation_deg = 0.0
+		rotation_degrees = lerp(rotation_degrees, 0.0, ROT_LERP * delta)
+		
+		# Применяем движение
+		move_and_slide()
+		
+		# Если прошло время остановки - переходим в главное меню
+		if _landing_stop_timer >= LANDING_STOP_TIME and not _menu_transition_started:
+			_menu_transition_started = true
+			print("Таймер остановки завершён, переход в меню...")
+			_go_to_main_menu()
+		
+		# Обновляем текущую скорость для глобальных расчётов
+		InGameVars.current_speed = target_velocity.x
+		_update_speed_factor()
+		return
+	
+	# Сохраняем предыдущее состояние касания полосы (ДО проверки нового состояния)
+	_was_on_runway = is_on_runway
+	
+	# Обновляем время последнего прыжка
+	_last_jump_time += delta
+	
+	# Применяем движение и проверяем касание с полосой
+	move_and_slide()
+	
+	# Проверяем касание полосы двумя способами:
+	# 1. Через is_on_floor() - стандартная проверка коллизий (главный способ)
+	# 2. Через проверку позиции - если самолёт находится над полосой и достаточно близко по вертикали
+	var is_touching_floor: bool = is_on_floor()
+	var horizontal_distance_to_runway: float = abs(_target_runway_x - position.x)
+	var vertical_distance_to_runway: float = abs(position.y - _target_runway_y)
+	const RUNWAY_TOUCH_HORIZONTAL: float = 400.0  # Расстояние по горизонтали для считания касания
+	const RUNWAY_TOUCH_VERTICAL: float = 80.0     # Расстояние по вертикали для считания касания (увеличено)
+	
+	# Если is_on_floor() возвращает true - значит точно касаемся полосы (главная проверка)
+	if is_touching_floor:
+		is_on_runway = true
+		# Отладочное сообщение когда касаемся полосы
+		if not _was_on_runway:
+			print("DEBUG: is_on_floor стало true! _was_on_runway=", _was_on_runway, " is_on_runway=", is_on_runway)
+	else:
+		# Альтернативная проверка по позиции (если коллизии не сработали)
+		var is_near_runway_by_position: bool = (
+			horizontal_distance_to_runway <= RUNWAY_TOUCH_HORIZONTAL and
+			vertical_distance_to_runway <= RUNWAY_TOUCH_VERTICAL and
+			position.y >= _target_runway_y - RUNWAY_TOUCH_VERTICAL  # Самолёт не выше полосы больше чем на RUNWAY_TOUCH_VERTICAL
+		)
+		is_on_runway = is_near_runway_by_position
+		
+		# Отладочные сообщения (только если близко к полосе и не касаемся)
+		if horizontal_distance_to_runway <= RUNWAY_TOUCH_HORIZONTAL * 1.5:
+			print("Проверка касания: гориз. расстояние=", horizontal_distance_to_runway, " верт. расстояние=", vertical_distance_to_runway, 
+				" Y=", position.y, " Полоса Y=", _target_runway_y, " is_on_floor=", is_touching_floor, " по позиции=", is_near_runway_by_position)
+	
+	if is_on_runway:
+		# Если касаемся полосы - едем по ней горизонтально
+		if not _was_on_runway:  # Проверка на первый контакт
+			print("Самолёт коснулся полосы!")
+			_has_landed = true
+			_landing_stop_timer = 0.0
+			print("Начало остановки на полосе...")
+		
+		# Выравниваем самолёт горизонтально
+		target_rotation_deg = 0.0
+		rotation_degrees = lerp(rotation_degrees, 0.0, ROT_LERP * delta)
+		
+		# Устанавливаем горизонтальную скорость для движения по полосе
+		target_velocity.x = BASE_SPEED * 0.5  # Скорость по полосе чуть медленнее
+		target_velocity.y = 0.0  # Убираем вертикальную скорость
+	else:
+		# Если не касаемся полосы - автоматически управляем траекторией
+		_auto_landing_control(delta)
+	
+	# Плавно применяем скорость
+	velocity = velocity.lerp(target_velocity, SPEED_LERP * delta)
+	
+	# Плавный поворот к целевому углу (если не на полосе)
+	if not is_on_runway:
+		var diff := target_rotation_deg - rotation_degrees
+		if abs(diff) > 0.5:
+			rotation_degrees = lerp(rotation_degrees, target_rotation_deg, ROT_LERP * delta)
+		else:
+			rotation_degrees = target_rotation_deg
+	
+	# Жёсткое ограничение позиции чтобы самолёт не улетел за границы экрана
+	position.y = clamp(position.y, MAX_Y_POSITION, MIN_Y_POSITION)
+	
+	# Если самолёт достиг нижней границы - принудительно устанавливаем вертикальную скорость вверх
+	if position.y >= MIN_Y_POSITION:
+		velocity.y = min(velocity.y, JUMP_FORCE * 0.5)
+		target_velocity.y = JUMP_FORCE * 0.7
+	
+	# Обновляем текущую скорость для глобальных расчётов
+	InGameVars.current_speed = target_velocity.x
+	_update_speed_factor()
+
+func _go_to_main_menu() -> void:
+	"""Переход в главное меню после приземления"""
+	print("Переход в главное меню...")
+	var error_code: Error = get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
+	if error_code != OK:
+		push_error("Ошибка при переходе в главное меню: " + str(error_code))
+		print("Путь к сцене: res://menus/MainMenu/main_menu.tscn")
+
+func _auto_landing_control(delta: float) -> void:
+	"""Автоматически управляет траекторией приземления для достижения полосы"""
+	# Сохраняем текущую горизонтальную скорость
+	if target_velocity.x <= 0.0:
+		target_velocity.x = BASE_SPEED * 0.3  # Минимальная скорость вперед при падении
+	
+	# Обновляем позицию целевой полосы (аэропорт может двигаться)
+	_update_target_runway_position()
+	
+	# Вычисляем расстояние до полосы
+	var horizontal_distance: float = _target_runway_x - position.x
+	var height_diff: float = position.y - _target_runway_y
+	var vertical_velocity_current: float = velocity.y
+	
+	# Пороги для автоматических прыжков
+	const JUMP_HEIGHT_THRESHOLD: float = 120.0  # Если самолёт слишком высоко над полосой, прыгаем вниз
+	const CLOSE_HEIGHT_THRESHOLD: float = 80.0  # Если близко к полосе, не прыгаем агрессивно
+	const CRITICAL_HEIGHT_THRESHOLD: float = 250.0  # Критическая высота - нужен экстренный прыжок
+	const APPROACH_DISTANCE: float = 500.0  # Расстояние до полосы, когда начинаем активную корректировку
+	const MAX_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от верхней границы для предотвращения улёта за экран
+	const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней границы для предотвращения улёта за экран
+	const RUNWAY_WIDTH: float = 400.0  # Ширина области над полосой, где не прыгаем (в обе стороны от центра полосы)
+	const RUNWAY_APPROACH_HEIGHT: float = 300.0  # Высота над полосой, когда отключаем экстренные прыжки
+	
+	# Если самолёт находится над полосой - не прыгаем, позволяем гравитации приземлить его естественно
+	if abs(horizontal_distance) <= RUNWAY_WIDTH:
+		# Находимся над полосой - только гравитация, без прыжков
+		target_velocity.y += GRAVITY * delta
+		target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
+		return
+	
+	# Проверяем, не улетает ли самолёт слишком низко (ниже нижней границы экрана)
+	# Но только если не над полосой и не близко к полосе по высоте
+	if position.y >= MIN_Y_POSITION - MIN_SAFE_HEIGHT_MARGIN:
+		# Проверяем, не находимся ли мы близко к полосе по горизонтали
+		# Если близко к полосе по горизонтали - отключаем экстренные прыжки, позволяем приземлиться
+		if abs(horizontal_distance) <= RUNWAY_WIDTH * 1.5:
+			# Близко к полосе - только гравитация, не прыгаем
+			target_velocity.y += GRAVITY * delta
+			return
+		
+		# Если далеко от полосы - делаем экстренный прыжок только если действительно критично низко
+		if position.y >= MIN_Y_POSITION - 50.0:
+			# Самолёт слишком близко к нижней границе или ниже - экстренный прыжок вверх
+			# JUMP_FORCE уже отрицательное значение (вверх), поэтому просто умножаем
+			target_velocity.y = JUMP_FORCE * 0.9  # Сильный прыжок вверх
+			_last_jump_time = 0.0
+			print("Экстренный прыжок: самолёт слишком низко! Y=", position.y, " MIN_Y=", MIN_Y_POSITION, " Расстояние до полосы: ", horizontal_distance)
+		return
+	
+	# Проверяем, не улетает ли самолёт слишком высоко (выше верхней границы экрана)
+	if position.y <= MAX_Y_POSITION + MAX_SAFE_HEIGHT_MARGIN:
+		# Самолёт слишком высоко - не прыгаем, применяем гравитацию для снижения
+		if vertical_velocity_current < 0.0:  # Если движется вверх
+			target_velocity.y = 0.0  # Останавливаем движение вверх
+			print("Предотвращение улёта за экран: Y=", position.y, " MAX_Y=", MAX_Y_POSITION)
+		target_velocity.y += GRAVITY * delta * 1.5  # Усиленная гравитация для быстрого снижения
+		target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
+		return
+	
+	# Если уже пролетели полосу - просто продолжаем движение и поддерживаем высоту
+	if horizontal_distance < -200.0:
+		# Уже пролетели полосу - поддерживаем высоту
+		if height_diff > CRITICAL_HEIGHT_THRESHOLD or vertical_velocity_current > 200.0:
+			if _last_jump_time >= LANDING_JUMP_COOLDOWN:
+				target_velocity.y = JUMP_FORCE * 0.7
+				_last_jump_time = 0.0
+		else:
+			target_velocity.y += GRAVITY * delta
+		target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
+		return
+	
+	# Если ещё далеко от полосы по горизонтали - просто поддерживаем высоту
+	if horizontal_distance > APPROACH_DISTANCE:
+		# Поддерживаем текущую высоту, не позволяем слишком низко упасть
+		# Но не прыгаем если уже слишком высоко относительно полосы
+		if height_diff > CRITICAL_HEIGHT_THRESHOLD or (vertical_velocity_current > 200.0 and height_diff > 50.0):
+			if _last_jump_time >= LANDING_JUMP_COOLDOWN:
+				# Ограничиваем силу прыжка если уже высоко
+				var jump_strength: float = 0.7
+				if height_diff < 0.0:  # Если уже выше полосы
+					jump_strength = 0.0  # Не прыгаем вверх если уже выше полосы
+				elif position.y < MAX_Y_POSITION + 200.0:  # Если близко к верхней границе
+					jump_strength = 0.4  # Ослабляем прыжок
+				target_velocity.y = JUMP_FORCE * jump_strength
+				_last_jump_time = 0.0
+		else:
+			target_velocity.y += GRAVITY * delta
+		target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
+		return
+	
+	# Если близко к полосе - активная корректировка траектории
+	# Если самолёт слишком низко и быстро падает - делаем прыжок вверх
+	if height_diff > CLOSE_HEIGHT_THRESHOLD:
+		# Самолёт слишком низко - нужен прыжок вверх
+		# Но не прыгаем если уже слишком высоко относительно верхней границы экрана
+		if position.y < MAX_Y_POSITION + 150.0:
+			# Слишком близко к верхней границе - не прыгаем, применяем гравитацию
+			target_velocity.y += GRAVITY * delta * 1.2
+		elif _last_jump_time >= LANDING_JUMP_COOLDOWN:
+			if height_diff > CRITICAL_HEIGHT_THRESHOLD or (vertical_velocity_current > 200.0 and horizontal_distance < 200.0):
+				# Критическая ситуация или быстро падаем близко к полосе - сильный прыжок
+				# Но ограничиваем если близко к верхней границе
+				var jump_strength: float = 0.8
+				if position.y < MAX_Y_POSITION + 300.0:
+					jump_strength = 0.5  # Ослабляем прыжок если близко к верху
+				target_velocity.y = JUMP_FORCE * jump_strength
+				print("Экстренный прыжок вверх! Высота: ", height_diff, " Скорость: ", vertical_velocity_current, " Расстояние: ", horizontal_distance)
+			elif vertical_velocity_current > 150.0:
+				# Обычный прыжок вверх если падаем достаточно быстро
+				var jump_strength: float = 0.6
+				if position.y < MAX_Y_POSITION + 300.0:
+					jump_strength = 0.4  # Ослабляем прыжок если близко к верху
+				target_velocity.y = JUMP_FORCE * jump_strength
+				print("Автоматический прыжок вверх. Высота: ", height_diff, " Расстояние: ", horizontal_distance)
+			else:
+				# Если падаем медленно, просто немного поднимаемся (только если действительно низко)
+				if height_diff > 100.0 and position.y > MAX_Y_POSITION + 300.0:
+					target_velocity.y = JUMP_FORCE * 0.4
+			_last_jump_time = 0.0
+		else:
+			# Не прыгаем, но всё равно применяем гравитацию
+			target_velocity.y += GRAVITY * delta
+	
+	# Если самолёт слишком высоко над полосой - усиливаем падение
+	elif height_diff < -JUMP_HEIGHT_THRESHOLD:
+		# Самолёт слишком высоко, нужно быстрее снижаться
+		target_velocity.y += GRAVITY * delta * 2.0  # Усиленная гравитация
+		if _last_jump_time >= LANDING_JUMP_COOLDOWN and vertical_velocity_current < -50.0:
+			# Если уже падаем медленно, добавляем рывок вниз
+			target_velocity.y = min(target_velocity.y, DIVE_BOOST_ACCEL * 0.5)
+			_last_jump_time = 0.0
+			print("Усиленное снижение. Высота: ", height_diff, " Расстояние: ", horizontal_distance)
+	
+	# Если самолёт близко к целевой высоте - плавно корректируем траекторию
+	elif abs(height_diff) <= CLOSE_HEIGHT_THRESHOLD:
+		# Плавно выравниваем вертикальную скорость для мягкой посадки
+		if vertical_velocity_current > 80.0:
+			target_velocity.y = lerpf(vertical_velocity_current, 0.0, 0.2)
+		elif vertical_velocity_current < -80.0:
+			# Если слишком быстро поднимаемся, немного притормаживаем
+			target_velocity.y = lerpf(vertical_velocity_current, 0.0, 0.15)
+		else:
+			target_velocity.y += GRAVITY * delta
+	
+	# Обычная гравитация если не требуется специальная корректировка
+	else:
+		target_velocity.y += GRAVITY * delta
+	
+	# Наклоняем нос вниз во время падения (пропорционально скорости падения)
+	target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
+
+func _update_target_runway_position() -> void:
+	"""Обновляет позицию целевой полосы, если аэропорт был перемещён"""
+	var scene_tree: SceneTree = get_tree()
+	if not scene_tree:
+		return
+	
+	var root: Node = scene_tree.get_root()
+	if not root:
+		return
+	
+	# Ищем финишный аэропорт
+	var finish_airport: Node2D = root.get_node_or_null("Main/FinishAirport")
+	if finish_airport and finish_airport.visible:
+		_target_runway_x = finish_airport.position.x + 152.0
+		_target_runway_y = finish_airport.position.y + 187.0
+		return
+	
+	# Если финишный аэропорт не найден, используем стартовый
+	var start_airport: Node2D = root.get_node_or_null("Main/Stat_airport")
+	if start_airport:
+		_target_runway_x = start_airport.position.x + 152.0
+		_target_runway_y = start_airport.position.y + 187.0
