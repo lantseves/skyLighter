@@ -17,8 +17,13 @@
 [node name="Main" type="Node2D"]
 script = ExtResource("1_t3t11")
 
-[node name="Airport" parent="." instance=ExtResource("13_f4g65")]
+[node name="Stat_airport" parent="." instance=ExtResource("13_f4g65")]
 position = Vector2(336, 1698)
+
+[node name="FinishAirport" parent="." instance=ExtResource("13_f4g65")]
+visible = false
+position = Vector2(0, 1698)
+scale = Vector2(-1, 1)
 
 [node name="Player" parent="." instance=ExtResource("10_j3ubl")]
 position = Vector2(304, 1824)

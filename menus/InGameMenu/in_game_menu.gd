@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal timer_reached_zero
+
 @export var start_seconds: int = 10
 
 @onready var scoreLabel = $MarginContainer/HBoxContainer/MarginContainer/Score
@@ -28,7 +30,9 @@ func _on_count_down_timeout() -> void:
 	if InGameVars.remaining_timer  <= 0:
 		InGameVars.remaining_timer  = 0
 		cound_down_timer.stop()
-		get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
+		print("Timer reached zero! Emitting signal...")
+		timer_reached_zero.emit()
+		#get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
 	
 func _update_timer_label() -> void:
 	var minutes := InGameVars.remaining_timer / 60
