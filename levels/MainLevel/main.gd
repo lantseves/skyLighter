@@ -5,6 +5,7 @@ extends Node2D
 @onready var player: CharacterBody2D = $Player
 @onready var in_game_menu = $InGameMenu
 @onready var finish_airport: Node2D = $FinishAirport
+@onready var autopilot_animation: CanvasLayer = $AutopilotAnimation
 
 # Флаг для отслеживания показа финишного аэропорта
 var finish_airport_shown: bool = false
@@ -56,6 +57,11 @@ func end_game() -> void:
 
 func _on_timer_reached_zero() -> void:
 	print("_on_timer_reached_zero called!")
+	
+	# Показываем анимацию autopilot
+	if autopilot_animation:
+		autopilot_animation.show_autopilot()
+	
 	if not finish_airport_shown and finish_airport:
 		print("Showing finish airport...")
 		_show_finish_airport()
