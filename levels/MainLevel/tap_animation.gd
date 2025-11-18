@@ -15,9 +15,6 @@ var animation_timer: float = 0.0
 var is_showing_tap: bool = true  # Показываем tap.png или tapTick.png
 
 func _ready() -> void:
-	# Получаем ссылку на игрока
-	player = get_node_or_null("../Player")
-	
 	# Устанавливаем начальное состояние
 	if tap_sprite:
 		tap_sprite.visible = true
@@ -26,6 +23,28 @@ func _ready() -> void:
 	
 	# Размещаем анимацию в центре экрана и устанавливаем размер
 	_setup_position_and_size()
+	
+	# Получаем ссылку на игрока с задержкой для надежности в браузере
+	call_deferred("_find_player")
+
+func _find_player() -> void:
+	# Получаем ссылку на игрока через родительский узел
+	# Используем несколько способов для надежности в браузере
+	if get_parent():
+		player = get_parent().get_node_or_null("Player")
+	
+	# Если не получилось через родителя, пробуем через дерево сцены
+	if not player:
+		var scene_tree: SceneTree = get_tree()
+		if scene_tree:
+			var root: Node = scene_tree.get_root()
+			if root:
+				# Пробуем найти игрока через абсолютный путь
+				player = root.get_node_or_null("Main/Player")
+	
+	# Если все еще не нашли, пробуем относительный путь
+	if not player:
+		player = get_node_or_null("../Player")
 
 func _setup_position_and_size() -> void:
 	# Получаем размер экрана
@@ -51,6 +70,11 @@ func _setup_position_and_size() -> void:
 		tap_tick_sprite.position = viewport_size / 2.0
 
 func _process(delta: float) -> void:
+	# Если игрок еще не найден, пытаемся найти его снова
+	if not player:
+		_find_player()
+		return
+	
 	# Проверяем состояние игрока
 	if player != null and player.is_start_position:
 		# Игрок стоит на месте - показываем анимацию
