@@ -1,6 +1,7 @@
 extends CharacterBody2D                      # Скрипт висит на узле-персонаже с физикой (движение через velocity/move_and_slide)
 
 signal speed_factor_changed(factor: float)   # Сигнал наружу: сообщает, во сколько раз текущая горизонтальная скорость отличается от базовой (для HUD/аудио/параллакса)
+signal game_started                          # Сигнал: игра началась (пользователь кликнул)
 
 # === Параметры физики/управления ===
 const GRAVITY := 900.0                       # Гравитация, добавляется к вертикальной скорости каждый кадр (положительное значение тянет вниз)
@@ -164,6 +165,8 @@ func _start_takeoff() -> void:
 	target_velocity = Vector2(0.0, 0.0)
 	target_rotation_deg = 0.0
 	_update_speed_factor(true)
+	# Эмитим сигнал о начале игры
+	emit_signal("game_started")
 
 func _process_takeoff(delta: float) -> void:
 	_takeoff_elapsed += delta

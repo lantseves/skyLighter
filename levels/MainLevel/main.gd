@@ -15,7 +15,7 @@ var current_scroll_speed = base_scroll_speed
 var speed_multiplier = 1.0  # Множитель скорости для эффектов
 
 func _ready():
-	in_game_menu.start_timer()
+	# Таймер не запускаем при старте - ждём клика пользователя
 	#in_game_menu.time_up.connect(end_game())
 	# Проверяем инициализацию нод
 	if not parallax_bg:
@@ -27,6 +27,7 @@ func _ready():
 	# Подключаем сигналы игрока
 	if player:
 		player.connect("speed_factor_changed", _on_player_speed_factor_changed)
+		player.connect("game_started", _on_game_started)
 	
 	# Подключаем сигнал таймера
 	if in_game_menu:
@@ -42,6 +43,13 @@ func _physics_process(delta):
 # Обработчик изменения скорости от игрока
 func _on_player_speed_factor_changed(factor):
 	speed_multiplier = factor
+
+# Обработчик начала игры (клик пользователя)
+func _on_game_started() -> void:
+	# Запускаем таймер только после клика пользователя
+	if in_game_menu:
+		in_game_menu.start_timer()
+		print("Timer started after user click")
 
 func end_game() -> void:
 	get_tree().quit()
