@@ -2,7 +2,7 @@ extends CanvasLayer
 
 signal timer_reached_zero
 
-@export var start_seconds: int = 10
+@export var start_seconds: int = 60
 
 @onready var scoreLabel = $MarginContainer/HBoxContainer/MarginContainer/Score
 @onready var timer_label: Label = $MarginContainer/HBoxContainer/TimerLabel
