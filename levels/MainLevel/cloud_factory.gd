@@ -9,9 +9,9 @@ extends Node2D
 @export var window_margin: float = 350.0
 @onready var spawn_x: float = get_viewport().get_visible_rect().size.x + 300         # базовый X спавна (прибавится к позиции игрока)
 @export var spawn_on_ready: bool = true
-@onready var player: Node2D = $"../Player"          # двигающийся «маяк» спавна
+var player: Node2D = null          # двигающийся «маяк» спавна
 @onready var cloud_container: Node2D = $Clouds
-@onready var coin_factory: Node2D = $"../CoinFactory"
+var coin_factory: Node2D = null
 
 @onready var min_y: float = window_margin
 @onready var max_y: float = get_viewport().get_visible_rect().size.y - window_margin
@@ -40,13 +40,52 @@ var _last_progress_x: float = 0.0
 
 func _ready() -> void:
 	_rng.randomize()
-	_last_progress_x = player.global_position.x
-	_schedule_next()
-
+	# Получаем ссылки на узлы с задержкой для надежности в браузере
+	call_deferred("_find_nodes")
+	
+	# Инициализируем после того, как узлы будут найдены
 	if spawn_on_ready:
+		call_deferred("_delayed_spawn")
+
+func _find_nodes() -> void:
+	# Получаем ссылку на игрока через родительский узел
+	if get_parent():
+		player = get_parent().get_node_or_null("Player")
+		coin_factory = get_parent().get_node_or_null("CoinFactory")
+	
+	# Если не получилось через родителя, пробуем через дерево сцены
+	if not player or not coin_factory:
+		var scene_tree: SceneTree = get_tree()
+		if scene_tree:
+			var root: Node = scene_tree.get_root()
+			if root:
+				# Пробуем найти узлы через абсолютный путь
+				if not player:
+					player = root.get_node_or_null("Main/Player")
+				if not coin_factory:
+					coin_factory = root.get_node_or_null("Main/CoinFactory")
+	
+	# Если все еще не нашли, пробуем относительный путь
+	if not player:
+		player = get_node_or_null("../Player")
+	if not coin_factory:
+		coin_factory = get_node_or_null("../CoinFactory")
+	
+	# Инициализируем после успешного поиска узлов
+	if player:
+		_last_progress_x = player.global_position.x
+		_schedule_next()
+
+func _delayed_spawn() -> void:
+	# Ждем, пока узлы будут найдены
+	if player and coin_factory:
 		_spawn_one()  # мгновенный первый спавн по желанию
 
 func _process(delta: float) -> void:
+	# Если узлы еще не найдены, пытаемся найти их снова
+	if not player or not coin_factory:
+		_find_nodes()
+		return
 
 	# считаем только продвижение вперёд (вправо)
 	var x := player.global_position.x
@@ -79,6 +118,10 @@ func _schedule_next() -> void:
 # СПАВН ОДНОГО ОБЛАКА
 # ----------------------
 func _spawn_one() -> void:
+	# Проверяем, что узлы инициализированы
+	if not player or not coin_factory or not cloud_container:
+		return
+	
 	var kind := _pick_cloud_type_norm()
 	var scene: PackedScene
 	match kind:
@@ -109,9 +152,11 @@ func _calculeta_position_y(cloudType: Enums.CloudType) -> float:
 			return _rng.randf_range(min_y, max_y)
 	
 func _calculate_position_y(offset: float) -> float:
+	if not player:
+		return _rng.randf_range(min_y, max_y)
 	var position_min: float = max(min_y, player.get_player_y() - offset)
 	var position_max: float = min(max_y, player.get_player_y() + offset)
-	return _rng.randf_range(position_min, position_min)
+	return _rng.randf_range(position_min, position_max)
 # ----------------------
 # ВЫБОР ТИПА ОБЛАКА (нормализовано до 100)
 # ----------------------

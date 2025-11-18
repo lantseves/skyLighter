@@ -6,6 +6,7 @@ extends Node2D
 @onready var in_game_menu = $InGameMenu
 @onready var finish_airport: Node2D = $FinishAirport
 @onready var autopilot_animation: CanvasLayer = $AutopilotAnimation
+@onready var start_airport: Node2D = $Stat_airport
 
 # Флаг для отслеживания показа финишного аэропорта
 var finish_airport_shown: bool = false
@@ -80,7 +81,6 @@ func _on_timer_reached_zero() -> void:
 			target_position = finish_airport.position
 		else:
 			# Используем стартовый аэропорт как запасной вариант
-			var start_airport: Node2D = $Stat_airport
 			if start_airport:
 				target_position = start_airport.position
 		
@@ -96,8 +96,7 @@ func _show_finish_airport() -> void:
 	var airport_x: float = player_current_x + viewport_size.x + 500.0
 	
 	# Получаем Y позицию первого аэропорта
-	var first_airport: Node2D = $Stat_airport
-	var airport_y: float = first_airport.position.y if first_airport else 1698.0
+	var airport_y: float = start_airport.position.y if start_airport else 1698.0
 	
 	# Показываем и перемещаем аэропорт
 	finish_airport.visible = true
