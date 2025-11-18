@@ -130,4 +130,3 @@ func show_autopilot() -> void:
 func hide_autopilot() -> void:
 	"""Скрывает анимацию слова autopilot"""
 	visible = false
-
