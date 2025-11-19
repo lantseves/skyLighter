@@ -16,7 +16,7 @@
 [ext_resource type="Script" uid="uid://bow6v8ikotfq2" path="res://levels/MainLevel/tap_animation.gd" id="17_tap_anim"]
 [ext_resource type="Texture2D" uid="uid://dfo240odbqbl" path="res://assets/start-finger/tap.png" id="18_tap"]
 [ext_resource type="Texture2D" uid="uid://cikh7rxamhwdh" path="res://assets/start-finger/tapTick.png" id="19_tap_tick"]
-[ext_resource type="Script" uid="uid://mpaiigch8xbd" path="res://levels/MainLevel/autopilot_animation.gd" id="20_autopilot"]
+[ext_resource type="PackedScene" path="res://levels/MainLevel/autopilot_animation.tscn" id="20_autopilot_scene"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_t3t11")
@@ -66,5 +66,4 @@ texture = ExtResource("18_tap")
 visible = false
 texture = ExtResource("19_tap_tick")
 
-[node name="AutopilotAnimation" type="CanvasLayer" parent="."]
-script = ExtResource("20_autopilot")
+[node name="AutopilotAnimation" parent="." instance=ExtResource("20_autopilot_scene")]

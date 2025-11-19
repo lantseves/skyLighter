@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dq8pm8kyqytvc"]
+
+[ext_resource type="Script" uid="uid://mpaiigch8xbd" path="res://levels/MainLevel/autopilot_animation.gd" id="1_autopilot_script"]
+
+[node name="AutopilotAnimation" type="CanvasLayer"]
+script = ExtResource("1_autopilot_script")
+
+[node name="LettersPreloader" type="ResourcePreloader" parent="."]

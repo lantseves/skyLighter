@@ -6,28 +6,46 @@ const LETTER_SPACING: float = 30.0  # Расстояние между буква
 const PULSE_SPEED: float = 2.0  # Скорость пульсации
 const PULSE_AMPLITUDE: float = 0.1  # Амплитуда пульсации (10%)
 const WORD_WIDTH_PERCENT: float = 0.7  # Слово должно занимать 70% ширины экрана
-
-const LETTER_TEXTURES: Dictionary = {
-	"A": preload("res://assets/letters/letterA.png"),
-	"U": preload("res://assets/letters/letterU.png"),
-	"T": preload("res://assets/letters/letterT.png"),
-	"O": preload("res://assets/letters/letterO.png"),
-	"P": preload("res://assets/letters/letterP.png"),
-	"I": preload("res://assets/letters/letterI.png"),
-	"L": preload("res://assets/letters/letterL.png")
-}
+const LETTER_TEXTURE_PATH_PREFIX: String = "res://assets/letters/letter"
 
 # Массив спрайтов для букв
 var letter_sprites: Array = []
 var base_scales: Array = []
+var letter_textures: Dictionary = {}
 
 # Таймер для анимации
 var animation_time: float = 0.0
 
+@onready var letters_preloader: ResourcePreloader = $LettersPreloader
+
 func _ready() -> void:
 	# Скрываем по умолчанию
 	visible = false
+	_load_letter_textures()
 	_create_letters()
+
+func _load_letter_textures() -> void:
+	letter_textures.clear()
+	
+	for letter_index: int in range(WORD.length()):
+		var letter_upper: String = WORD[letter_index].to_upper()
+		if letter_textures.has(letter_upper):
+			continue
+		
+		var texture: Texture2D = null
+		
+		if letters_preloader != null:
+			var resource_key: String = "letter" + letter_upper
+			texture = letters_preloader.get_resource(resource_key)
+		
+		if texture == null:
+			var texture_path: String = LETTER_TEXTURE_PATH_PREFIX + letter_upper + ".png"
+			texture = load(texture_path)
+		
+		if texture == null:
+			push_warning("Не удалось загрузить текстуру для буквы: " + letter_upper)
+		
+		letter_textures[letter_upper] = texture
 
 func _create_letters() -> void:
 	# Получаем размер экрана для позиционирования
@@ -38,26 +56,18 @@ func _create_letters() -> void:
 	var target_total_width: float = viewport_size.x * WORD_WIDTH_PERCENT
 	
 	# Сначала вычисляем ширину всех букв при масштабе 1.0
-	var letter_textures: Array = []
-	var letter_base_widths: Array = []
+	var letter_widths: Array = []
 	var total_letters_width: float = 0.0
 	
 	for letter_index: int in range(WORD.length()):
-		var letter: String = WORD[letter_index]
-		var letter_upper: String = letter.to_upper()
-		
-		# Путь к текстуре буквы
-		var texture: Texture2D = LETTER_TEXTURES.get(letter_upper, null)
-		
+		var letter_upper: String = WORD[letter_index].to_upper()
+		var texture: Texture2D = letter_textures.get(letter_upper, null)
 		if texture == null:
-			push_error("Не удалось загрузить текстуру для буквы: " + letter_upper)
-			letter_textures.append(null)
-			letter_base_widths.append(0.0)
+			letter_widths.append(0.0)
 			continue
 		
-		letter_textures.append(texture)
 		var base_width: float = texture.get_width()
-		letter_base_widths.append(base_width)
+		letter_widths.append(base_width)
 		total_letters_width += base_width
 	
 	# Вычисляем коэффициент масштабирования для достижения 70% ширины экрана
@@ -65,20 +75,18 @@ func _create_letters() -> void:
 	if total_letters_width > 0.0:
 		# Учитываем отступы при вычислении масштаба
 		var total_spacing: float = (WORD.length() - 1) * LETTER_SPACING
-		var available_width_for_letters: float = target_total_width - total_spacing
-		scale_factor = available_width_for_letters / total_letters_width
+		var available_width_for_letters: float = max(target_total_width - total_spacing, 0.0)
+		scale_factor = available_width_for_letters / total_letters_width if total_letters_width > 0.0 else 1.0
 	
 	# Вычисляем начальную позицию для центрирования
 	var current_x: float = (viewport_size.x - target_total_width) / 2.0
 	
 	# Создаём и позиционируем спрайты
 	for letter_index: int in range(WORD.length()):
-		var texture: Texture2D = letter_textures[letter_index]
+		var letter_upper: String = WORD[letter_index].to_upper()
+		var texture: Texture2D = letter_textures.get(letter_upper, null)
 		if texture == null:
 			continue
-		
-		var letter: String = WORD[letter_index]
-		var letter_upper: String = letter.to_upper()
 		
 		# Вычисляем финальный масштаб
 		var final_scale: float = scale_factor
@@ -88,7 +96,7 @@ func _create_letters() -> void:
 			current_x += LETTER_SPACING
 		
 		# Позиционируем букву
-		var letter_width: float = letter_base_widths[letter_index] * final_scale
+		var letter_width: float = letter_widths[letter_index] * final_scale
 		current_x += letter_width / 2.0
 		
 		# Создаём спрайт
