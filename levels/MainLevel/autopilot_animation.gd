@@ -7,6 +7,16 @@ const PULSE_SPEED: float = 2.0  # Скорость пульсации
 const PULSE_AMPLITUDE: float = 0.1  # Амплитуда пульсации (10%)
 const WORD_WIDTH_PERCENT: float = 0.7  # Слово должно занимать 70% ширины экрана
 
+const LETTER_TEXTURES: Dictionary = {
+	"A": preload("res://assets/letters/letterA.png"),
+	"U": preload("res://assets/letters/letterU.png"),
+	"T": preload("res://assets/letters/letterT.png"),
+	"O": preload("res://assets/letters/letterO.png"),
+	"P": preload("res://assets/letters/letterP.png"),
+	"I": preload("res://assets/letters/letterI.png"),
+	"L": preload("res://assets/letters/letterL.png")
+}
+
 # Массив спрайтов для букв
 var letter_sprites: Array = []
 var base_scales: Array = []
@@ -37,8 +47,7 @@ func _create_letters() -> void:
 		var letter_upper: String = letter.to_upper()
 		
 		# Путь к текстуре буквы
-		var texture_path: String = "res://assets/letters/letter" + letter_upper + ".png"
-		var texture: Texture2D = load(texture_path)
+		var texture: Texture2D = LETTER_TEXTURES.get(letter_upper, null)
 		
 		if texture == null:
 			push_error("Не удалось загрузить текстуру для буквы: " + letter_upper)

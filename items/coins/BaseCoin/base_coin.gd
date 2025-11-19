@@ -1,5 +1,7 @@
 extends Area2D
 
+const FLOATING_POINTS_SCRIPT: GDScript = preload("res://items/coins/BaseCoin/floating_text.gd")
+
 @export var pointAmount:int = 1
 
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
@@ -19,14 +21,11 @@ func _on_body_entered(_body: Node2D) -> void:
 	self.queue_free()
 
 func _show_points_text() -> void:
-	# Загружаем скрипт для плавающего текста
-	var floating_text_script: GDScript = load("res://items/coins/BaseCoin/floating_text.gd")
-	if floating_text_script == null:
+	if FLOATING_POINTS_SCRIPT == null:
 		return
 	
 	# Создаем Node2D для текста
-	var floating_text: Node2D = Node2D.new()
-	floating_text.set_script(floating_text_script)
+	var floating_text: Node2D = FLOATING_POINTS_SCRIPT.new()
 	
 	# Устанавливаем начальную позицию (немного выше звезды)
 	var start_position: Vector2 = global_position

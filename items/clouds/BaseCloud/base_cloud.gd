@@ -1,5 +1,7 @@
 extends Area2D
 
+const FLOATING_SECONDS_SCRIPT: GDScript = preload("res://items/clouds/BaseCloud/floating_seconds_text.gd")
+
 @export var amountSeconds: int = 1
 
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
@@ -21,14 +23,11 @@ func _show_seconds_text() -> void:
 	if amountSeconds == 0:
 		return
 	
-	# Загружаем скрипт для плавающего текста
-	var floating_text_script: GDScript = load("res://items/clouds/BaseCloud/floating_seconds_text.gd")
-	if floating_text_script == null:
+	if FLOATING_SECONDS_SCRIPT == null:
 		return
 	
 	# Создаем Node2D для текста
-	var floating_text: Node2D = Node2D.new()
-	floating_text.set_script(floating_text_script)
+	var floating_text: Node2D = FLOATING_SECONDS_SCRIPT.new()
 	
 	# Устанавливаем начальную позицию (немного выше облака)
 	var start_position: Vector2 = global_position
