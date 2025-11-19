@@ -3,9 +3,13 @@ extends Node2D
 var world_position: Vector2
 var seconds_label: Label
 var animation_tween: Tween
+var camera: Camera2D = null
 
 func setup(target_world_position: Vector2, seconds_amount: int, is_bonus: bool) -> void:
 	world_position = target_world_position
+	
+	# Находим камеру для преобразования координат
+	_find_camera()
 	
 	# Создаем CanvasLayer для UI элементов
 	var canvas_layer: CanvasLayer = CanvasLayer.new()
@@ -34,6 +38,9 @@ func setup(target_world_position: Vector2, seconds_amount: int, is_bonus: bool) 
 	seconds_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	seconds_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
+	# Устанавливаем минимальный размер для Label, чтобы текст был виден
+	seconds_label.custom_minimum_size = Vector2(100, 50)
+	
 	# Добавляем Label в Control, Control в CanvasLayer
 	control.add_child(seconds_label)
 	canvas_layer.add_child(control)
@@ -53,15 +60,33 @@ func setup(target_world_position: Vector2, seconds_amount: int, is_bonus: bool) 
 	# Удаляем этот Node2D после завершения анимации
 	animation_tween.tween_callback(queue_free)
 
+func _find_camera() -> void:
+	# Ищем камеру в дереве сцены
+	var viewport: Viewport = get_viewport()
+	if viewport:
+		camera = viewport.get_camera_2d()
+		if camera == null:
+			# Если камера не найдена, пробуем найти через дерево сцены
+			var root: Node = get_tree().get_root()
+			if root:
+				camera = root.get_node_or_null("Main/Player/Camera2D")
+
 func _update_world_y(new_y: float) -> void:
 	world_position.y = new_y
 
 func _process(_delta: float) -> void:
 	# Обновляем позицию текста каждый кадр, следя за камерой
-	if seconds_label != null:
-		var canvas_transform: Transform2D = get_viewport().get_canvas_transform()
+	if seconds_label == null:
+		return
+	
+	# Преобразуем мировые координаты в экранные через viewport
+	var viewport: Viewport = get_viewport()
+	if viewport:
+		var canvas_transform: Transform2D = viewport.get_canvas_transform()
 		var screen_position: Vector2 = canvas_transform * world_position
+		
+		# Устанавливаем позицию Label
 		seconds_label.position = screen_position
-		seconds_label.position.x -= 30.0  # Центрируем по горизонтали
-		seconds_label.position.y -= 15.0  # Центрируем по вертикали
+		seconds_label.position.x -= 50.0  # Центрируем по горизонтали (половина минимальной ширины)
+		seconds_label.position.y -= 25.0  # Центрируем по вертикали (половина минимальной высоты)
 
