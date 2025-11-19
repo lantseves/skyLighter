@@ -71,6 +71,21 @@ func _find_camera() -> void:
 			if root:
 				camera = root.get_node_or_null("Main/Player/Camera2D")
 
+func _world_to_screen_position() -> Vector2:
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return Vector2.ZERO
+	
+	if camera != null:
+		var viewport_rect: Rect2 = viewport.get_visible_rect()
+		var viewport_size: Vector2 = viewport_rect.size
+		var camera_center: Vector2 = camera.get_screen_center_position()
+		var camera_top_left: Vector2 = camera_center - (viewport_size * 0.5)
+		return world_position - camera_top_left
+	
+	var canvas_transform: Transform2D = viewport.get_canvas_transform()
+	return canvas_transform * world_position
+
 func _update_world_y(new_y: float) -> void:
 	world_position.y = new_y
 
@@ -79,14 +94,13 @@ func _process(_delta: float) -> void:
 	if seconds_label == null:
 		return
 	
-	# Преобразуем мировые координаты в экранные через viewport
-	var viewport: Viewport = get_viewport()
-	if viewport:
-		var canvas_transform: Transform2D = viewport.get_canvas_transform()
-		var screen_position: Vector2 = canvas_transform * world_position
-		
-		# Устанавливаем позицию Label
-		seconds_label.position = screen_position
-		seconds_label.position.x -= 50.0  # Центрируем по горизонтали (половина минимальной ширины)
-		seconds_label.position.y -= 25.0  # Центрируем по вертикали (половина минимальной высоты)
+	if camera == null:
+		_find_camera()
+	
+	var screen_position: Vector2 = _world_to_screen_position()
+	
+	# Устанавливаем позицию Label
+	seconds_label.position = screen_position
+	seconds_label.position.x -= 50.0  # Центрируем по горизонтали (половина минимальной ширины)
+	seconds_label.position.y -= 25.0  # Центрируем по вертикали (половина минимальной высоты)
 
