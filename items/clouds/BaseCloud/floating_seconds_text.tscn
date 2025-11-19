@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://items/clouds/BaseCloud/floating_seconds_text.gd" id="1_r5fak"]
+
+[node name="FloatingSecondsText" type="Node2D"]
+script = ExtResource("1_r5fak")
+

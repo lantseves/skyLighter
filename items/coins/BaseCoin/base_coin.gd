@@ -1,6 +1,6 @@
 extends Area2D
 
-const FLOATING_POINTS_SCRIPT: GDScript = preload("res://items/coins/BaseCoin/floating_text.gd")
+const FLOATING_POINTS_SCENE: PackedScene = preload("res://items/coins/BaseCoin/floating_text.tscn")
 
 @export var pointAmount:int = 1
 
@@ -21,11 +21,11 @@ func _on_body_entered(_body: Node2D) -> void:
 	self.queue_free()
 
 func _show_points_text() -> void:
-	if FLOATING_POINTS_SCRIPT == null:
+	if FLOATING_POINTS_SCENE == null:
 		return
 	
 	# Создаем Node2D для текста
-	var floating_text: Node2D = FLOATING_POINTS_SCRIPT.new()
+	var floating_text: Node2D = FLOATING_POINTS_SCENE.instantiate() as Node2D
 	
 	# Устанавливаем начальную позицию (немного выше звезды)
 	var start_position: Vector2 = global_position

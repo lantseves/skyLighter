@@ -1,6 +1,6 @@
 extends Area2D
 
-const FLOATING_SECONDS_SCRIPT: GDScript = preload("res://items/clouds/BaseCloud/floating_seconds_text.gd")
+const FLOATING_SECONDS_SCENE: PackedScene = preload("res://items/clouds/BaseCloud/floating_seconds_text.tscn")
 
 @export var amountSeconds: int = 1
 
@@ -23,11 +23,11 @@ func _show_seconds_text() -> void:
 	if amountSeconds == 0:
 		return
 	
-	if FLOATING_SECONDS_SCRIPT == null:
+	if FLOATING_SECONDS_SCENE == null:
 		return
 	
 	# Создаем Node2D для текста
-	var floating_text: Node2D = FLOATING_SECONDS_SCRIPT.new()
+	var floating_text: Node2D = FLOATING_SECONDS_SCENE.instantiate() as Node2D
 	
 	# Устанавливаем начальную позицию (немного выше облака)
 	var start_position: Vector2 = global_position
