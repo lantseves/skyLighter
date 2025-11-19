@@ -2,119 +2,106 @@ extends CanvasLayer
 
 # Слово для отображения
 const WORD: String = "autopilot"
-const LETTER_SPACING: float = 30.0  # Расстояние между буквами
+const LETTER_SPACING: float = 30.0  # Используется для волны пульсации
 const PULSE_SPEED: float = 2.0  # Скорость пульсации
 const PULSE_AMPLITUDE: float = 0.1  # Амплитуда пульсации (10%)
 const WORD_WIDTH_PERCENT: float = 0.7  # Слово должно занимать 70% ширины экрана
-const LETTER_TEXTURE_PATH_PREFIX: String = "res://assets/letters/letter"
 
 # Массив спрайтов для букв
 var letter_sprites: Array = []
 var base_scales: Array = []
-var letter_textures: Dictionary = {}
 
 # Таймер для анимации
 var animation_time: float = 0.0
 
-@onready var letters_preloader: ResourcePreloader = $LettersPreloader
+@onready var letters_container: Node2D = $Letters
 
 func _ready() -> void:
 	# Скрываем по умолчанию
 	visible = false
-	_load_letter_textures()
-	_create_letters()
+	_cache_letter_sprites()
+	_layout_letters()
 
-func _load_letter_textures() -> void:
-	letter_textures.clear()
+func _cache_letter_sprites() -> void:
+	letter_sprites.clear()
+	base_scales.clear()
 	
-	for letter_index: int in range(WORD.length()):
-		var letter_upper: String = WORD[letter_index].to_upper()
-		if letter_textures.has(letter_upper):
+	if letters_container == null:
+		push_warning("Не найден узел Letters в сцене autopilot_animation.")
+		return
+	
+	for child: Node in letters_container.get_children():
+		var sprite := child as Sprite2D
+		if sprite == null:
 			continue
-		
-		var texture: Texture2D = null
-		
-		if letters_preloader != null:
-			var resource_key: String = "letter" + letter_upper
-			texture = letters_preloader.get_resource(resource_key)
-		
-		if texture == null:
-			var texture_path: String = LETTER_TEXTURE_PATH_PREFIX + letter_upper + ".png"
-			texture = load(texture_path)
-		
-		if texture == null:
-			push_warning("Не удалось загрузить текстуру для буквы: " + letter_upper)
-		
-		letter_textures[letter_upper] = texture
-
-func _create_letters() -> void:
-	# Получаем размер экрана для позиционирования
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	var center_y: float = viewport_size.y / 2.0
-	
-	# Желаемая общая ширина слова (70% от ширины экрана)
-	var target_total_width: float = viewport_size.x * WORD_WIDTH_PERCENT
-	
-	# Сначала вычисляем ширину всех букв при масштабе 1.0
-	var letter_widths: Array = []
-	var total_letters_width: float = 0.0
-	
-	for letter_index: int in range(WORD.length()):
-		var letter_upper: String = WORD[letter_index].to_upper()
-		var texture: Texture2D = letter_textures.get(letter_upper, null)
-		if texture == null:
-			letter_widths.append(0.0)
-			continue
-		
-		var base_width: float = texture.get_width()
-		letter_widths.append(base_width)
-		total_letters_width += base_width
-	
-	# Вычисляем коэффициент масштабирования для достижения 70% ширины экрана
-	var scale_factor: float = 1.0
-	if total_letters_width > 0.0:
-		# Учитываем отступы при вычислении масштаба
-		var total_spacing: float = (WORD.length() - 1) * LETTER_SPACING
-		var available_width_for_letters: float = max(target_total_width - total_spacing, 0.0)
-		scale_factor = available_width_for_letters / total_letters_width if total_letters_width > 0.0 else 1.0
-	
-	# Вычисляем начальную позицию для центрирования
-	var current_x: float = (viewport_size.x - target_total_width) / 2.0
-	
-	# Создаём и позиционируем спрайты
-	for letter_index: int in range(WORD.length()):
-		var letter_upper: String = WORD[letter_index].to_upper()
-		var texture: Texture2D = letter_textures.get(letter_upper, null)
-		if texture == null:
-			continue
-		
-		# Вычисляем финальный масштаб
-		var final_scale: float = scale_factor
-		
-		# Добавляем отступ перед буквой (кроме первой)
-		if letter_index > 0:
-			current_x += LETTER_SPACING
-		
-		# Позиционируем букву
-		var letter_width: float = letter_widths[letter_index] * final_scale
-		current_x += letter_width / 2.0
-		
-		# Создаём спрайт
-		var sprite: Sprite2D = Sprite2D.new()
-		sprite.texture = texture
-		sprite.name = "Letter" + letter_upper + str(letter_index)
-		sprite.scale = Vector2(final_scale, final_scale)
-		sprite.position = Vector2(current_x, center_y)
-		
-		# Сохраняем базовый масштаб
-		base_scales.append(Vector2(final_scale, final_scale))
 		letter_sprites.append(sprite)
+		base_scales.append(sprite.scale)
+
+func _layout_letters() -> void:
+	if letters_container == null or letter_sprites.is_empty():
+		return
+	
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var min_x: float = INF
+	var max_x: float = -INF
+	var min_y: float = INF
+	var max_y: float = -INF
+	
+	for sprite: Sprite2D in letter_sprites:
+		if sprite.texture == null:
+			continue
+		var texture_size: Vector2 = Vector2(sprite.texture.get_size())
+		var half_size: Vector2 = texture_size * sprite.scale * 0.5
+		var left: float = sprite.position.x - half_size.x
+		var right: float = sprite.position.x + half_size.x
+		var top: float = sprite.position.y - half_size.y
+		var bottom: float = sprite.position.y + half_size.y
 		
-		# Переходим к следующей позиции
-		current_x += letter_width / 2.0
-		
-		# Добавляем спрайт в сцену
-		add_child(sprite)
+		min_x = min(min_x, left)
+		max_x = max(max_x, right)
+		min_y = min(min_y, top)
+		max_y = max(max_y, bottom)
+	
+	var word_width: float = max_x - min_x
+	var word_height: float = max_y - min_y
+	if word_width <= 0.0 or word_height <= 0.0:
+		return
+	
+	# Масштабируем слово, если оно занимает больше 70% ширины экрана
+	var target_width: float = viewport_size.x * WORD_WIDTH_PERCENT
+	var scale_factor: float = min(1.0, target_width / word_width)
+	if not is_equal_approx(scale_factor, 1.0):
+		for i in range(letter_sprites.size()):
+			var sprite: Sprite2D = letter_sprites[i]
+			sprite.scale = base_scales[i] * scale_factor
+	
+	# Пересчитываем габариты после масштабирования
+	min_x = INF
+	max_x = -INF
+	min_y = INF
+	max_y = -INF
+	for sprite in letter_sprites:
+		if sprite.texture == null:
+			continue
+		var texture_size: Vector2 = Vector2(sprite.texture.get_size())
+		var half_size: Vector2 = texture_size * sprite.scale * 0.5
+		var left: float = sprite.position.x - half_size.x
+		var right: float = sprite.position.x + half_size.x
+		var top: float = sprite.position.y - half_size.y
+		var bottom: float = sprite.position.y + half_size.y
+		min_x = min(min_x, left)
+		max_x = max(max_x, right)
+		min_y = min(min_y, top)
+		max_y = max(max_y, bottom)
+	
+	word_width = max_x - min_x
+	word_height = max_y - min_y
+	
+	var centered_position := Vector2(
+		(viewport_size.x - word_width) * 0.5 - min_x,
+		(viewport_size.y - word_height) * 0.5 - min_y
+	)
+	letters_container.position = centered_position
 
 func _process(delta: float) -> void:
 	if not visible:
