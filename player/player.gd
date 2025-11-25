@@ -68,10 +68,6 @@ const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней гр
 @export var landing_hold_distance_x: float = 800.0  # Дистанция по X до полосы, на которой держим высоту
 @export var landing_hold_altitude_above_runway: float = 120.0  # Минимальная высота над полосой до входа в зону посадки
 
-# Звуковые узлы для пропеллера
-@onready var propeller_start_sound: AudioStreamPlayer = $PropellerStartSound
-@onready var propeller_loop_sound: AudioStreamPlayer = $PropellerLoopSound
-
 func get_player_y() -> float:                # Публичный геттер: отдать текущую высоту игрока (может пригодиться другим узлам)
 	return self.position.y                   # Возвращаем Y-позицию узла
 
@@ -80,16 +76,6 @@ func _ready() -> void:                       # Вызывается при вх�
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size  # Узнаём размер видимой области (экрана)
 	MAX_Y_POSITION = window_margin           # Верхняя граница = отступ сверху
 	MIN_Y_POSITION = viewport_size.y - 50 # Нижняя граница = высота экрана минус отступ снизу
-	
-	# Настраиваем звук пропеллера: loop звук должен зацикливаться во время полёта
-	if propeller_loop_sound:
-		# Пытаемся установить зацикливание напрямую, если свойство доступно
-		if propeller_loop_sound.stream and "loop" in propeller_loop_sound.stream:
-			propeller_loop_sound.stream.loop = true
-		# Подключаем сигнал для перезапуска звука, если зацикливание не работает автоматически
-		propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
-	
-	# Стартовый звук будет проигран один раз после клика пользователя в _start_takeoff()
 
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
@@ -119,7 +105,32 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 
 	# Гравитация, если нет вертикального буста
 	if not is_zooming and not is_diving:     # Пока не активен ни подъём, ни пикирование…
+		# Проверяем, не выполняется ли сейчас активный прыжок вверх (например, стартовый рывок)
+		# Проверяем ДО применения гравитации, чтобы не перекрывать активные прыжки
+		var is_jumping_up: bool = target_velocity.y < -300.0  # Если целевая вертикальная скорость вверх больше 300, значит активный прыжок
+		
 		target_velocity.y += GRAVITY * delta # …тянем цель по Y вниз гравитацией
+		
+		# Если нет активного ввода - поддерживаем высоту маленькими прыжками (как при посадке)
+		var has_active_input: bool = Input.is_action_pressed("jump") or Input.is_action_pressed("zoom_climb") or Input.is_action_pressed("dive_boost")
+		
+		if not has_active_input and not is_jumping_up:
+			# Вычисляем безопасную высоту полета (аналогично посадке)
+			var safe_flight_altitude: float = MIN_Y_POSITION - landing_hold_altitude_above_runway
+			var altitude_diff: float = position.y - safe_flight_altitude
+			
+			if altitude_diff > 10.0:
+				# Самолёт ниже безопасной высоты - поднимаем его маленькими прыжками
+				var lift_strength: float = clampf(altitude_diff / 100.0, 0.2, 0.6)
+				target_velocity.y = JUMP_FORCE * lift_strength
+			elif altitude_diff < -10.0:
+				# Самолёт выше безопасной высоты - опускаем под гравитацией (уже применена выше)
+				pass
+			else:
+				# На безопасной высоте - поддерживаем горизонтальный полёт маленькими прыжками
+				# Если вертикальная скорость слишком большая вниз - делаем маленький прыжок
+				if velocity.y > 100.0:
+					target_velocity.y = JUMP_FORCE * 0.3  # Маленький прыжок для поддержания
 
 	# Плавно тянем фактическую скорость к целевой
 	velocity = velocity.lerp(target_velocity, SPEED_LERP * delta)  # Сглаженное приближение velocity к target_velocity
@@ -178,18 +189,6 @@ func _start_takeoff() -> void:
 	target_velocity = Vector2(0.0, 0.0)
 	target_rotation_deg = 0.0
 	_update_speed_factor(true)
-	
-	# Проигрываем стартовый звук один раз, затем включаем loop звук
-	if propeller_start_sound:
-		propeller_start_sound.play()
-		# Подключаем сигнал для переключения на loop звук после окончания стартового
-		if not propeller_start_sound.finished.is_connected(_on_propeller_start_finished_to_loop):
-			propeller_start_sound.finished.connect(_on_propeller_start_finished_to_loop)
-	else:
-		# Если стартового звука нет, сразу включаем loop
-		if propeller_loop_sound:
-			propeller_loop_sound.play()
-	
 	# Эмитим сигнал о начале игры
 	emit_signal("game_started")
 
@@ -333,10 +332,6 @@ func start_landing(target_runway_position: Vector2 = Vector2.ZERO) -> void:
 	_landing_stop_timer = 0.0
 	_has_landed = false
 	_menu_transition_started = false
-	
-	# Останавливаем звук пропеллера при начале приземления
-	if propeller_loop_sound:
-		propeller_loop_sound.stop()
 	
 	# Определяем целевую позицию полосы (начало полосы для посадки)
 	# Коллизия полосы имеет ширину 784 пикселя, центр на X=152 относительно аэропорта
@@ -641,17 +636,6 @@ func _auto_landing_control(delta: float) -> void:
 	
 	# Наклоняем нос вниз во время падения (пропорционально скорости падения)
 	target_rotation_deg = clamp(velocity.y * 0.05, -MAX_TILT, MAX_TILT)
-
-func _on_propeller_start_finished_to_loop() -> void:
-	"""Переключается на loop звук после окончания стартового звука"""
-	if propeller_loop_sound:
-		propeller_loop_sound.play()
-
-func _on_propeller_loop_finished() -> void:
-	"""Перезапускает звук пропеллера, если игра ещё не закончилась"""
-	# Перезапускаем звук только если не в режиме приземления и не в стартовой позиции
-	if not is_landing and not is_start_position and propeller_loop_sound:
-		propeller_loop_sound.play()
 
 func _update_target_runway_position() -> void:
 	"""Обновляет позицию целевой полосы, если аэропорт был перемещён"""
