@@ -86,12 +86,10 @@ func _ready() -> void:                       # Вызывается при вх�
 	_original_collision_mask = collision_mask  # Сохраняем исходную маску столкновений
 	
 	# Настраиваем зацикливание звука мотора
-	if propeller_loop_sound and propeller_loop_sound.stream:
-		# Включаем зацикливание в самом аудиостриме (для OGG Vorbis)
-		var stream: AudioStream = propeller_loop_sound.stream
-		if stream is AudioStreamOggVorbis:
-			stream.loop = true
-		# Подключаем сигнал завершения зацикленного звука для перезапуска (на случай если loop не сработает)
+	# В веб-версии зацикливание через stream.loop может не работать надежно,
+	# поэтому всегда используем перезапуск через сигнал finished
+	if propeller_loop_sound:
+		# Подключаем сигнал завершения зацикленного звука для перезапуска
 		if not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
 			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
 	
@@ -343,21 +341,46 @@ func _update_speed_factor(force := false) -> void:      # Отправка си�
 # === Звук мотора ===
 func _start_propeller_sound() -> void:
 	"""Запускает звук мотора: сначала стартовый звук, затем зацикленный"""
+	# Проверяем доступность узлов звука
+	if not propeller_start_sound and has_node("PropellerStartSound"):
+		propeller_start_sound = $PropellerStartSound as AudioStreamPlayer
+	if not propeller_loop_sound and has_node("PropellerLoopSound"):
+		propeller_loop_sound = $PropellerLoopSound as AudioStreamPlayer
+		# Подключаем сигнал, если еще не подключен
+		if propeller_loop_sound and not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
+			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
+	
 	if propeller_start_sound:
 		propeller_start_sound.play()
-	elif propeller_loop_sound:
-		# Если стартового звука нет, сразу запускаем зацикленный
+		# В веб-версии запускаем зацикленный звук сразу после стартового
+		# так как сигнал finished может не сработать надежно
+		if OS.has_feature("web") and propeller_loop_sound:
+			# Запускаем зацикленный звук через короткую задержку после стартового
+			_start_loop_sound_with_fallback()
+	# Если стартового звука нет, сразу запускаем зацикленный
+	if not propeller_start_sound and propeller_loop_sound:
 		propeller_loop_sound.play()
 
 func _on_propeller_start_finished() -> void:
 	"""Вызывается когда заканчивается стартовый звук мотора - запускает зацикленный"""
 	if propeller_loop_sound:
+		# Убеждаемся, что сигнал подключен для зацикливания
+		if not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
+			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
+		propeller_loop_sound.play()
+
+func _start_loop_sound_with_fallback() -> void:
+	"""Запускает зацикленный звук с задержкой для веб-версии"""
+	# Ждем немного, чтобы стартовый звук успел проиграться
+	await get_tree().create_timer(0.5).timeout
+	# Запускаем зацикленный звук (сигнал finished может не сработать в веб-версии)
+	if propeller_loop_sound:
 		propeller_loop_sound.play()
 
 func _on_propeller_loop_finished() -> void:
 	"""Вызывается когда заканчивается зацикленный звук мотора - перезапускает его"""
-	if propeller_loop_sound and not propeller_loop_sound.stream.loop:
-		# Перезапускаем только если loop не настроен в самом стриме
+	# Всегда перезапускаем звук для надежного зацикливания (особенно важно для веб-версии)
+	if propeller_loop_sound:
 		propeller_loop_sound.play()
 
 func _on_game_director_difficulty_changed(_multiplier: float, _storm_quota: int, _pickup_block_s: float) -> void:
