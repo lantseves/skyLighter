@@ -19,8 +19,12 @@ func start_timer() -> void:
 func _ready() -> void:
 	reset_timer()
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(_delta: float) -> void:
+# Используем _physics_process для более стабильной работы на вебе
+func _physics_process(_delta: float) -> void:
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not visible or not is_inside_tree():
+		return
+	
 	scoreLabel.text = "Score: " + str(InGameVars.score)
 	_update_timer_label()
 

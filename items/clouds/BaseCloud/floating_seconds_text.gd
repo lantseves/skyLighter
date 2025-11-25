@@ -89,7 +89,11 @@ func _world_to_screen_position() -> Vector2:
 func _update_world_y(new_y: float) -> void:
 	world_position.y = new_y
 
-func _process(_delta: float) -> void:
+func _physics_process(_delta: float) -> void:
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not visible or not is_inside_tree():
+		return
+	
 	# Обновляем позицию текста каждый кадр, следя за камерой
 	if seconds_label == null:
 		return

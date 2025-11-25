@@ -81,7 +81,11 @@ func _delayed_spawn() -> void:
 	if player and coin_factory:
 		_spawn_one()  # мгновенный первый спавн по желанию
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not visible or not is_inside_tree():
+		return
+	
 	# Если узлы еще не найдены, пытаемся найти их снова
 	if not player or not coin_factory:
 		_find_nodes()
@@ -98,6 +102,9 @@ func _process(delta: float) -> void:
 			_progress_px -= _next_distance_px
 			_spawn_one()
 			_schedule_next()
+	
+	# Удаляем облака, которые ушли за левый край экрана
+	_cleanup_off_screen_clouds()
 
 # ----------------------
 # ЛОГИКА РАСЧЁТА ИНТЕРВАЛА
@@ -185,3 +192,36 @@ func _pick_cloud_type_norm() -> Enums.CloudType:
 		return Enums.CloudType.BONUS
 	else:
 		return Enums.CloudType.EMPTY
+
+# Удаляет облака, которые ушли за левый край экрана
+func _cleanup_off_screen_clouds() -> void:
+	if not cloud_container or not player:
+		return
+	
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	
+	var viewport_size: Vector2 = viewport.get_visible_rect().size
+	var camera: Camera2D = viewport.get_camera_2d()
+	
+	# Определяем левую границу экрана (с отступом для безопасности)
+	var left_boundary: float
+	if camera:
+		var camera_center: Vector2 = camera.get_screen_center_position()
+		left_boundary = camera_center.x - viewport_size.x * 0.5 - 200.0  # Отступ 200 пикселей
+	else:
+		# Если камеры нет, используем позицию игрока
+		left_boundary = player.global_position.x - viewport_size.x * 0.5 - 200.0
+	
+	# Проверяем все облака и удаляем те, что ушли за левый край
+	var clouds_to_remove: Array[Node] = []
+	for cloud_child: Node in cloud_container.get_children():
+		if cloud_child is Node2D:
+			var cloud: Node2D = cloud_child as Node2D
+			if cloud.global_position.x < left_boundary:
+				clouds_to_remove.append(cloud)
+	
+	# Удаляем облака, которые ушли за экран
+	for cloud: Node in clouds_to_remove:
+		cloud.queue_free()

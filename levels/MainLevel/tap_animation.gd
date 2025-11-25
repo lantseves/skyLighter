@@ -69,7 +69,11 @@ func _setup_position_and_size() -> void:
 		tap_tick_sprite.scale = Vector2(scale_factor, scale_factor)
 		tap_tick_sprite.position = viewport_size / 2.0
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not is_inside_tree():
+		return
+	
 	# Если игрок еще не найден, пытаемся найти его снова
 	if not player:
 		_find_player()

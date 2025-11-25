@@ -103,8 +103,9 @@ func _layout_letters() -> void:
 	)
 	letters_container.position = centered_position
 
-func _process(delta: float) -> void:
-	if not visible:
+func _physics_process(delta: float) -> void:
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not visible or not is_inside_tree():
 		return
 	
 	# Обновляем время анимации
