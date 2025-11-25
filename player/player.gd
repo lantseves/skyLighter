@@ -582,6 +582,23 @@ func _process_landing(delta: float) -> void:
 
 func _go_to_main_menu() -> void:
 	"""Добавление сцены GameOver поверх текущей сцены после приземления"""
+	# Скрываем надпись автопилота
+	var scene_tree: SceneTree = get_tree()
+	if scene_tree:
+		var root: Node = scene_tree.get_root()
+		if root:
+			var autopilot_animation: CanvasLayer = root.get_node_or_null("Main/AutopilotAnimation")
+			if autopilot_animation:
+				autopilot_animation.hide_autopilot()
+				print("Автопилот скрыт")
+	
+	# Останавливаем звук мотора
+	if propeller_start_sound and propeller_start_sound.playing:
+		propeller_start_sound.stop()
+	if propeller_loop_sound and propeller_loop_sound.playing:
+		propeller_loop_sound.stop()
+	print("Звук мотора остановлен")
+	
 	print("Добавление сцены финиша...")
 	var game_over_scene: PackedScene = load("res://menus/GameOver/game_over.tscn")
 	if game_over_scene == null:
@@ -593,7 +610,6 @@ func _go_to_main_menu() -> void:
 		push_error("Не удалось создать экземпляр сцены финиша")
 		return
 	
-	var scene_tree: SceneTree = get_tree()
 	if scene_tree:
 		var root: Node = scene_tree.get_root()
 		if root:
