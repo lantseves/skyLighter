@@ -124,7 +124,12 @@ func _cleanup_off_screen_coins() -> void:
 	for coin_child: Node in coins_layer.get_children():
 		if coin_child is Node2D:
 			var coin: Node2D = coin_child as Node2D
-			if coin.global_position.x < left_boundary:
+			# Проверяем, не собирается ли монета
+			var is_being_collected: bool = false
+			if coin.has_method("is_being_collected"):
+				is_being_collected = coin.is_being_collected()
+			# Не удаляем монеты, которые собираются
+			if not is_being_collected and coin.global_position.x < left_boundary:
 				coins_to_remove.append(coin)
 	
 	# Удаляем монеты, которые ушли за экран

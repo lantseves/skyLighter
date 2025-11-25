@@ -6,15 +6,33 @@ const FLOATING_POINTS_SCENE: PackedScene = preload("res://items/coins/BaseCoin/f
 
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
 
+var is_collected: bool = false  # Флаг для предотвращения повторного сбора
+var collection_tween: Tween = null  # Ссылка на Tween анимации сбора
+
+# Метод для проверки, собирается ли монета (для использования в coin_factory)
+func is_being_collected() -> bool:
+	return is_collected
+
 func _on_body_entered(_body: Node2D) -> void:
+	# Проверяем, не собрана ли уже монета
+	if is_collected:
+		return
+	
 	# Проверяем глобальный флаг режима посадки
 	if InGameVars.is_landing:
 		# Игрок в режиме посадки - не собираем монету
 		return
 	
+	# Помечаем монету как собранную
+	is_collected = true
+	
 	# Отключаем коллизию, чтобы монета не собиралась повторно
-	set_deferred("monitoring", false)
-	set_deferred("monitorable", false)
+	monitoring = false
+	monitorable = false
+	
+	# Проверяем, что объект все еще в дереве сцены
+	if not is_inside_tree():
+		return
 	
 	InGameVars.score += pointAmount
 	_show_points_text()
@@ -26,12 +44,17 @@ func _on_body_entered(_body: Node2D) -> void:
 		# Удаляем аудиоплеер после окончания звука
 		audio_player.finished.connect(audio_player.queue_free)
 	
-	# Создаем Tween и удаляем объект только после завершения анимации
-	var tween: Tween = get_tree().create_tween()
-	tween.set_parallel(false)
-	tween.tween_property(self, "position:y", position.y - 50, 0.2)
+	# Создаем Tween на объекте (автоматически привязывается к узлу)
+	# create_tween() на узле автоматически привязывает Tween к этому узлу
+	collection_tween = create_tween()
+	collection_tween.set_parallel(false)
+	collection_tween.tween_property(self, "position:y", position.y - 50, 0.2)
+	# Подключаем сигнал finished для удаления объекта после завершения анимации
+	collection_tween.finished.connect(_on_collection_animation_finished)
+
+func _on_collection_animation_finished() -> void:
 	# Удаляем объект после завершения анимации
-	tween.tween_callback(queue_free)
+	queue_free()
 
 func _show_points_text() -> void:
 	if FLOATING_POINTS_SCENE == null:

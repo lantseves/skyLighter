@@ -517,12 +517,28 @@ func _process_landing(delta: float) -> void:
 	_update_speed_factor()
 
 func _go_to_main_menu() -> void:
-	"""Переход в главное меню после приземления"""
-	print("Переход в главное меню...")
-	var error_code: Error = get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
-	if error_code != OK:
-		push_error("Ошибка при переходе в главное меню: " + str(error_code))
-		print("Путь к сцене: res://menus/MainMenu/main_menu.tscn")
+	"""Добавление сцены GameOver поверх текущей сцены после приземления"""
+	print("Добавление сцены финиша...")
+	var game_over_scene: PackedScene = load("res://menus/GameOver/game_over.tscn")
+	if game_over_scene == null:
+		push_error("Не удалось загрузить сцену финиша: res://menus/GameOver/game_over.tscn")
+		return
+	
+	var game_over_instance: Node = game_over_scene.instantiate()
+	if game_over_instance == null:
+		push_error("Не удалось создать экземпляр сцены финиша")
+		return
+	
+	var scene_tree: SceneTree = get_tree()
+	if scene_tree:
+		var root: Node = scene_tree.get_root()
+		if root:
+			root.add_child(game_over_instance)
+			print("Сцена финиша успешно добавлена")
+		else:
+			push_error("Не удалось получить корневой узел дерева сцены")
+	else:
+		push_error("Не удалось получить дерево сцены")
 
 func _auto_landing_control(delta: float) -> void:
 	"""Автоматически управляет траекторией приземления для достижения полосы"""
