@@ -55,8 +55,6 @@ offset = Vector2(400, 0)
 process_callback = 0
 limit_top = 0
 limit_bottom = 0
-position_smoothing_enabled = true
-position_smoothing_speed = 8.0
 drag_bottom_margin = 0.18
 
 [node name="PropellerStartSound" type="AudioStreamPlayer" parent="."]

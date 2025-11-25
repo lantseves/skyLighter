@@ -46,6 +46,9 @@ func _physics_process(delta: float) -> void:
 		# Проверяем видимость для оптимизации на веб-платформе
 		if not parallax_bg.visible or not parallax_bg.is_inside_tree():
 			return
+		# Синхронизируем скорость фона со скоростью игрока (отрицательная, так как фон движется влево)
+		var player_speed: float = InGameVars.current_speed if InGameVars.current_speed > 0.0 else abs(base_scroll_speed)
+		current_scroll_speed = -player_speed
 		# Обновляем смещение фона
 		parallax_bg.scroll_offset.x += current_scroll_speed * speed_multiplier * delta
 
