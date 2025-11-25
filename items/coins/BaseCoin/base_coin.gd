@@ -12,8 +12,10 @@ func _on_body_entered(_body: Node2D) -> void:
 		# Игрок в режиме посадки - не собираем монету
 		return
 	
-	var tween = get_tree().create_tween()
-	tween.tween_property(self, "position:y", position.y -50, 0.2)
+	# Отключаем коллизию, чтобы монета не собиралась повторно
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	
 	InGameVars.score += pointAmount
 	_show_points_text()
 	if audio_player:
@@ -23,7 +25,13 @@ func _on_body_entered(_body: Node2D) -> void:
 		audio_player.play()
 		# Удаляем аудиоплеер после окончания звука
 		audio_player.finished.connect(audio_player.queue_free)
-	self.queue_free()
+	
+	# Создаем Tween и удаляем объект только после завершения анимации
+	var tween: Tween = get_tree().create_tween()
+	tween.set_parallel(false)
+	tween.tween_property(self, "position:y", position.y - 50, 0.2)
+	# Удаляем объект после завершения анимации
+	tween.tween_callback(queue_free)
 
 func _show_points_text() -> void:
 	if FLOATING_POINTS_SCENE == null:
