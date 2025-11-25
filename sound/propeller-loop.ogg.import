@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/propeller-loop.ogg-f33bb35fd9854c14e92e3870c2
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

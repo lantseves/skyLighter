@@ -1,11 +1,31 @@
 extends CanvasLayer
 
-@onready var score_label: Label = $Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ScoreLabel
-@onready var game_over_label: Label = $Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/GameOverLabel
-@onready var main_menu_button: Button = $Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer/MainMenuButton
-@onready var play_again_button: Button = $Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer/PlayAgainButton
+var score_label: Label = null
+var game_over_label: Label = null
+var main_menu_button: Button = null
+var play_again_button: Button = null
 
 func _ready() -> void:
+	# Инициализируем узлы с проверкой, как в других местах кода
+	score_label = get_node_or_null("Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ScoreLabel")
+	game_over_label = get_node_or_null("Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/GameOverLabel")
+	main_menu_button = get_node_or_null("Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer/MainMenuButton")
+	play_again_button = get_node_or_null("Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer/PlayAgainButton")
+	
+	# Проверяем, что все узлы найдены
+	if not score_label:
+		push_error("ScoreLabel не найден в GameOver сцене")
+		return
+	if not game_over_label:
+		push_error("GameOverLabel не найден в GameOver сцене")
+		return
+	if not main_menu_button:
+		push_error("MainMenuButton не найден в GameOver сцене")
+		return
+	if not play_again_button:
+		push_error("PlayAgainButton не найден в GameOver сцене")
+		return
+	
 	# Отображаем счет из глобальных переменных
 	var final_score: int = InGameVars.score
 	score_label.text = "Очки: " + str(final_score)

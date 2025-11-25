@@ -68,6 +68,10 @@ var _last_speed_factor: float = 1.0          # Последний отправл
 # Для управления столкновениями
 var _original_collision_mask: int = 14      # Исходная маска столкновений (облака + монеты + аэропорт)
 
+# Звуки мотора
+@onready var propeller_start_sound: AudioStreamPlayer = $PropellerStartSound
+@onready var propeller_loop_sound: AudioStreamPlayer = $PropellerLoopSound
+
 const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней границы для предотвращения улёта за экран
 @export var landing_hold_distance_x: float = 800.0  # Дистанция по X до полосы, на которой держим высоту
 @export var landing_hold_altitude_above_runway: float = 120.0  # Минимальная высота над полосой до входа в зону посадки
@@ -87,6 +91,14 @@ func _ready() -> void:                       # Вызывается при вх�
 	MIN_Y_POSITION = viewport_size.y - 50 # Нижняя граница = высота экрана минус отступ снизу
 	_original_collision_mask = collision_mask  # Сохраняем исходную маску столкновений
 	_last_position_x = position.x            # Инициализируем предыдущую позицию
+	
+	# Настраиваем зацикливание для звука мотора
+	if propeller_loop_sound and propeller_loop_sound.stream:
+		propeller_loop_sound.stream.loop = true
+	
+	# Подключаем сигнал завершения стартового звука мотора для перехода на зацикленный звук
+	if propeller_start_sound:
+		propeller_start_sound.finished.connect(_on_propeller_start_finished)
 
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
@@ -208,6 +220,8 @@ func _start_takeoff() -> void:
 	_update_speed_factor(true)
 	# Эмитим сигнал о начале игры
 	emit_signal("game_started")
+	# Запускаем звук мотора
+	_start_propeller_sound()
 
 func _process_takeoff(delta: float) -> void:
 	_takeoff_elapsed += delta
@@ -708,3 +722,14 @@ func _update_target_runway_position() -> void:
 	if start_airport:
 		_target_runway_x = start_airport.position.x + RUNWAY_START_OFFSET_X
 		_target_runway_y = start_airport.position.y + 187.0
+
+# === Управление звуком мотора ===
+func _start_propeller_sound() -> void:
+	"""Запускает звук мотора: сначала стартовый звук, затем зацикленный"""
+	if propeller_start_sound and not propeller_start_sound.playing:
+		propeller_start_sound.play()
+
+func _on_propeller_start_finished() -> void:
+	"""Обработчик завершения стартового звука мотора - запускает зацикленный звук"""
+	if propeller_loop_sound:
+		propeller_loop_sound.play()
