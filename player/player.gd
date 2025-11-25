@@ -71,6 +71,10 @@ const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней гр
 @export var landing_hold_distance_x: float = 800.0  # Дистанция по X до полосы, на которой держим высоту
 @export var landing_hold_altitude_above_runway: float = 120.0  # Минимальная высота над полосой до входа в зону посадки
 
+# Ссылки на узлы звука мотора
+@onready var propeller_start_sound: AudioStreamPlayer = $PropellerStartSound
+@onready var propeller_loop_sound: AudioStreamPlayer = $PropellerLoopSound
+
 func get_player_y() -> float:                # Публичный геттер: отдать текущую высоту игрока (может пригодиться другим узлам)
 	return self.position.y                   # Возвращаем Y-позицию узла
 
@@ -80,6 +84,21 @@ func _ready() -> void:                       # Вызывается при вх�
 	MAX_Y_POSITION = window_margin           # Верхняя граница = отступ сверху
 	MIN_Y_POSITION = viewport_size.y - 50 # Нижняя граница = высота экрана минус отступ снизу
 	_original_collision_mask = collision_mask  # Сохраняем исходную маску столкновений
+	
+	# Настраиваем зацикливание звука мотора
+	if propeller_loop_sound and propeller_loop_sound.stream:
+		# Включаем зацикливание в самом аудиостриме (для OGG Vorbis)
+		var stream: AudioStream = propeller_loop_sound.stream
+		if stream is AudioStreamOggVorbis:
+			stream.loop = true
+		# Подключаем сигнал завершения зацикленного звука для перезапуска (на случай если loop не сработает)
+		if not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
+			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
+	
+	# Подключаем сигнал завершения стартового звука к запуску зацикленного
+	if propeller_start_sound:
+		if not propeller_start_sound.finished.is_connected(_on_propeller_start_finished):
+			propeller_start_sound.finished.connect(_on_propeller_start_finished)
 
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
@@ -193,6 +212,8 @@ func _start_takeoff() -> void:
 	target_velocity = Vector2(0.0, 0.0)
 	target_rotation_deg = 0.0
 	_update_speed_factor(true)
+	# Запускаем звук мотора
+	_start_propeller_sound()
 	# Эмитим сигнал о начале игры
 	emit_signal("game_started")
 
@@ -318,6 +339,26 @@ func _update_speed_factor(force := false) -> void:      # Отправка си�
 	if force or abs(factor - _last_speed_factor) > 0.05:           # Если форсируем или изменение заметно…
 		_last_speed_factor = factor                                 # …обновляем кэш…
 		emit_signal("speed_factor_changed", factor)                  # …и шлём сигнал
+
+# === Звук мотора ===
+func _start_propeller_sound() -> void:
+	"""Запускает звук мотора: сначала стартовый звук, затем зацикленный"""
+	if propeller_start_sound:
+		propeller_start_sound.play()
+	elif propeller_loop_sound:
+		# Если стартового звука нет, сразу запускаем зацикленный
+		propeller_loop_sound.play()
+
+func _on_propeller_start_finished() -> void:
+	"""Вызывается когда заканчивается стартовый звук мотора - запускает зацикленный"""
+	if propeller_loop_sound:
+		propeller_loop_sound.play()
+
+func _on_propeller_loop_finished() -> void:
+	"""Вызывается когда заканчивается зацикленный звук мотора - перезапускает его"""
+	if propeller_loop_sound and not propeller_loop_sound.stream.loop:
+		# Перезапускаем только если loop не настроен в самом стриме
+		propeller_loop_sound.play()
 
 func _on_game_director_difficulty_changed(_multiplier: float, _storm_quota: int, _pickup_block_s: float) -> void:
 	pass # Replace with function body. # блокировка по элементов TODO  # Заглушка под реакцию на изменение сложности игры (подстройка параметров)

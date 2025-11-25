@@ -27,8 +27,9 @@ func _on_body_entered(_body: Node2D) -> void:
 	is_collected = true
 	
 	# Отключаем коллизию, чтобы монета не собиралась повторно
-	monitoring = false
-	monitorable = false
+	# Используем set_deferred, так как нельзя изменять эти свойства во время обработки сигнала столкновения
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
 	
 	# Проверяем, что объект все еще в дереве сцены
 	if not is_inside_tree():
