@@ -64,6 +64,9 @@ var loop_start_rotation: float = 0.0         # Запоминаем базовы
 # Для событий скорости (чтобы не спамить сигнал)
 var _last_speed_factor: float = 1.0          # Последний отправленный наружу «фактор скорости» (для отсечки мелких изменений)
 
+# Для управления столкновениями
+var _original_collision_mask: int = 14      # Исходная маска столкновений (облака + монеты + аэропорт)
+
 const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней границы для предотвращения улёта за экран
 @export var landing_hold_distance_x: float = 800.0  # Дистанция по X до полосы, на которой держим высоту
 @export var landing_hold_altitude_above_runway: float = 120.0  # Минимальная высота над полосой до входа в зону посадки
@@ -76,6 +79,7 @@ func _ready() -> void:                       # Вызывается при вх�
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size  # Узнаём размер видимой области (экрана)
 	MAX_Y_POSITION = window_margin           # Верхняя граница = отступ сверху
 	MIN_Y_POSITION = viewport_size.y - 50 # Нижняя граница = высота экрана минус отступ снизу
+	_original_collision_mask = collision_mask  # Сохраняем исходную маску столкновений
 
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
@@ -322,6 +326,7 @@ func _on_game_director_difficulty_changed(_multiplier: float, _storm_quota: int,
 func start_landing(target_runway_position: Vector2 = Vector2.ZERO) -> void:
 	"""Запускает режим приземления: отключает управление и включает гравитацию"""
 	is_landing = true
+	InGameVars.is_landing = true  # Устанавливаем глобальный флаг
 	can_control = false
 	is_zooming = false
 	is_diving = false
@@ -352,6 +357,9 @@ func start_landing(target_runway_position: Vector2 = Vector2.ZERO) -> void:
 	
 	# Устанавливаем безопасную высоту для полёта к полосе
 	_safe_landing_altitude = _target_runway_y - landing_hold_altitude_above_runway
+	
+	# Отключаем столкновения с монетами и облаками, оставляем только аэропорт (слой 4 = 8)
+	collision_mask = 8  # Только аэропорт, без монет и облаков
 	
 	# Не меняем позицию напрямую - самолёт будет плавно подниматься/опускаться под гравитацией
 	# Просто включаем гравитацию - самолёт сам опустится или поднимется до безопасной высоты

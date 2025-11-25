@@ -17,6 +17,8 @@ var current_scroll_speed = base_scroll_speed
 var speed_multiplier = 1.0  # Множитель скорости для эффектов
 
 func _ready():
+	# Сбрасываем флаг режима посадки при загрузке уровня
+	InGameVars.is_landing = false
 	# Таймер не запускаем при старте - ждём клика пользователя
 	#in_game_menu.time_up.connect(end_game())
 	# Проверяем инициализацию нод
@@ -25,6 +27,8 @@ func _ready():
 	else:
 		# Устанавливаем начальное смещение
 		parallax_bg.scroll_offset = Vector2.ZERO
+		# Отключаем автоскролл, так как управление происходит из main.gd
+		parallax_bg.auto_scroll = false
 	
 	# Подключаем сигналы игрока
 	if player:
@@ -36,9 +40,12 @@ func _ready():
 		in_game_menu.connect("timer_reached_zero", _on_timer_reached_zero)
 		print("Signal connected to timer_reached_zero")
 
-func _physics_process(delta):
+func _physics_process(delta: float) -> void:
 	# Прокрутка фона только если нода инициализирована
 	if parallax_bg:
+		# Проверяем видимость для оптимизации на веб-платформе
+		if not parallax_bg.visible or not parallax_bg.is_inside_tree():
+			return
 		# Обновляем смещение фона
 		parallax_bg.scroll_offset.x += current_scroll_speed * speed_multiplier * delta
 

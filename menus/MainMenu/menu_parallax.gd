@@ -9,7 +9,20 @@ enum ScaleMode { FIT_HEIGHT, FIT_WIDTH, COVER, CONTAIN }
 
 @export var overscan := 1.0  # 1.03–1.08 при необходимост
 
-func _process(delta):
+# Флаг для автоматической прокрутки (можно отключить, если управление извне)
+@export var auto_scroll: bool = true
+
+# Используем _physics_process вместо _process для более стабильной работы на вебе
+# _physics_process вызывается с фиксированной частотой и лучше оптимизирован
+func _physics_process(delta: float) -> void:
+	# Если автоскролл отключен, не обновляем (управление извне, например в main.gd)
+	if not auto_scroll:
+		return
+	
+	# Проверяем видимость для оптимизации на веб-платформе
+	if not visible or not is_inside_tree():
+		return
+	
 	# Плавное движение влево
 	scroll_offset.x -= scroll_speed * delta
 	#_apply_scale()

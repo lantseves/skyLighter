@@ -2,8 +2,8 @@
 
 [ext_resource type="Texture2D" uid="uid://gpkid2101huq" path="res://assets/planes.png" id="1_3vyb7"]
 [ext_resource type="Script" uid="uid://ceuoaoavkw1il" path="res://player/player.gd" id="1_g2els"]
-[ext_resource type="AudioStream" path="res://sound/propeller-start.ogg" id="2_propeller_start"]
-[ext_resource type="AudioStream" path="res://sound/propeller-loop.ogg" id="3_propeller_loop"]
+[ext_resource type="AudioStream" uid="uid://t5ltpunpfe8g" path="res://sound/propeller-start.ogg" id="2_propeller_start"]
+[ext_resource type="AudioStream" uid="uid://dfn104pc8iuo5" path="res://sound/propeller-loop.ogg" id="3_propeller_loop"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u8vuu"]
 size = Vector2(96, 80)
@@ -64,4 +64,3 @@ stream = ExtResource("2_propeller_start")
 
 [node name="PropellerLoopSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_propeller_loop")
-autoplay = false

@@ -7,6 +7,11 @@ const FLOATING_POINTS_SCENE: PackedScene = preload("res://items/coins/BaseCoin/f
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
 
 func _on_body_entered(_body: Node2D) -> void:
+	# Проверяем глобальный флаг режима посадки
+	if InGameVars.is_landing:
+		# Игрок в режиме посадки - не собираем монету
+		return
+	
 	var tween = get_tree().create_tween()
 	tween.tween_property(self, "position:y", position.y -50, 0.2)
 	InGameVars.score += pointAmount

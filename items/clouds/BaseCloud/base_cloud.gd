@@ -7,6 +7,11 @@ const FLOATING_SECONDS_SCENE: PackedScene = preload("res://items/clouds/BaseClou
 @onready var audio_player: AudioStreamPlayer = $AudioStreamPlayer
 
 func _on_body_entered(_body: Node2D) -> void:
+	# Проверяем глобальный флаг режима посадки
+	if InGameVars.is_landing:
+		# Игрок в режиме посадки - не собираем облако
+		return
+	
 	InGameVars.remaining_timer += amountSeconds
 	_show_seconds_text()
 	if audio_player:
