@@ -55,7 +55,6 @@ const LANDING_STOP_TIME: float = 1.00         # Время остановки п
 
 var target_velocity: Vector2 = Vector2(BASE_SPEED, 0.0)  # Целевая скорость, к которой мы сглаженно тянем фактическую velocity
 var target_rotation_deg := 0.0                           # Целевой визуальный угол наклона (в градусах), к нему сглаженно тянемся
-var _last_position_x: float = 0.0                        # Предыдущая позиция X для расчёта фактической скорости
 
 # Петля
 var loop_progress: float = 0.0               # От 0 до 1 — прогресс выполнения петли за LOOP_TIME
@@ -68,10 +67,6 @@ var _last_speed_factor: float = 1.0          # Последний отправл
 # Для управления столкновениями
 var _original_collision_mask: int = 14      # Исходная маска столкновений (облака + монеты + аэропорт)
 
-# Звуки мотора
-@onready var propeller_start_sound: AudioStreamPlayer = $PropellerStartSound
-@onready var propeller_loop_sound: AudioStreamPlayer = $PropellerLoopSound
-
 const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней границы для предотвращения улёта за экран
 @export var landing_hold_distance_x: float = 800.0  # Дистанция по X до полосы, на которой держим высоту
 @export var landing_hold_altitude_above_runway: float = 120.0  # Минимальная высота над полосой до входа в зону посадки
@@ -79,26 +74,12 @@ const MIN_SAFE_HEIGHT_MARGIN: float = 100.0  # Запас от нижней гр
 func get_player_y() -> float:                # Публичный геттер: отдать текущую высоту игрока (может пригодиться другим узлам)
 	return self.position.y                   # Возвращаем Y-позицию узла
 
-func _update_current_speed(delta: float) -> void:  # Обновляет текущую скорость на основе фактического перемещения
-	var actual_movement_x: float = position.x - _last_position_x
-	InGameVars.current_speed = actual_movement_x / delta if delta > 0.0 else velocity.x
-	_last_position_x = position.x
-
 func _ready() -> void:                       # Вызывается при входе узла в сцену
 	rotation_degrees = 0.0                   # Сбрасываем визуальный наклон в ноль
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size  # Узнаём размер видимой области (экрана)
 	MAX_Y_POSITION = window_margin           # Верхняя граница = отступ сверху
 	MIN_Y_POSITION = viewport_size.y - 50 # Нижняя граница = высота экрана минус отступ снизу
 	_original_collision_mask = collision_mask  # Сохраняем исходную маску столкновений
-	_last_position_x = position.x            # Инициализируем предыдущую позицию
-	
-	# Настраиваем зацикливание для звука мотора
-	if propeller_loop_sound and propeller_loop_sound.stream:
-		propeller_loop_sound.stream.loop = true
-	
-	# Подключаем сигнал завершения стартового звука мотора для перехода на зацикленный звук
-	if propeller_start_sound:
-		propeller_start_sound.finished.connect(_on_propeller_start_finished)
 
 func _physics_process(delta: float) -> void: # Физический кадр: безопасное место менять velocity/position
 	if is_start_position:
@@ -111,12 +92,11 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 		_process_takeoff(delta)
 		return
 
+	InGameVars.current_speed = target_velocity.x    # Текущая горизонтальная скорость для глобальных расчётов
 	if is_looping:                           # Если сейчас крутим петлю…
 		_process_loop(delta)                 # …двигаем вручную по окружности
 		# столкновения по траектории петли не учитываем
 		move_and_collide(Vector2.ZERO)       # Нулевое перемещение, чтобы не обрабатывались стандартные слайды/коллизии
-		# Обновляем скорость для синхронизации фона
-		_update_current_speed(delta)
 		return                               # Выходим: обычную физику в петле не считаем
 
 	# Режим приземления: таймер достиг нуля
@@ -157,9 +137,7 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 					target_velocity.y = JUMP_FORCE * 0.3  # Маленький прыжок для поддержания
 
 	# Плавно тянем фактическую скорость к целевой
-	# Используем экспоненциальное сглаживание с фиксированным коэффициентом для стабильности
-	var lerp_factor: float = 1.0 - exp(-SPEED_LERP * delta)
-	velocity = velocity.lerp(target_velocity, lerp_factor)  # Сглаженное приближение velocity к target_velocity
+	velocity = velocity.lerp(target_velocity, SPEED_LERP * delta)  # Сглаженное приближение velocity к target_velocity
 
 	# Вертикальные рамки уровня
 	position.y = clamp(position.y, MAX_Y_POSITION, MIN_Y_POSITION) # Жёстко ограничиваем Y в пределах окна
@@ -173,9 +151,6 @@ func _physics_process(delta: float) -> void: # Физический кадр: б
 
 	# Движение
 	move_and_slide()                                               # Применяем velocity с учётом физики (скольжение по полу и т.п.)
-
-	# Обновляем скорость ПОСЛЕ move_and_slide, используя фактическое перемещение за кадр
-	_update_current_speed(delta)
 
 	# Обновим фактор скорости для HUD/аудио
 	_update_speed_factor()                                         # Посчитаем factor (скорость/база) и при необходимости сэмитим сигнал
@@ -220,8 +195,6 @@ func _start_takeoff() -> void:
 	_update_speed_factor(true)
 	# Эмитим сигнал о начале игры
 	emit_signal("game_started")
-	# Запускаем звук мотора
-	_start_propeller_sound()
 
 func _process_takeoff(delta: float) -> void:
 	_takeoff_elapsed += delta
@@ -238,7 +211,7 @@ func _process_takeoff(delta: float) -> void:
 	position.y = clamp(position.y, MAX_Y_POSITION, MIN_Y_POSITION)
 	move_and_slide()
 
-	_update_current_speed(delta)
+	InGameVars.current_speed = target_velocity.x
 	_update_speed_factor()
 
 	if t >= 1.0:
@@ -459,7 +432,7 @@ func _process_landing(delta: float) -> void:
 			_go_to_main_menu()
 		
 		# Обновляем текущую скорость для глобальных расчётов
-		_update_current_speed(delta)
+		InGameVars.current_speed = target_velocity.x
 		_update_speed_factor()
 		return
 	
@@ -540,39 +513,16 @@ func _process_landing(delta: float) -> void:
 		target_velocity.y = JUMP_FORCE * 0.7
 	
 	# Обновляем текущую скорость для глобальных расчётов
-	_update_current_speed(delta)
+	InGameVars.current_speed = target_velocity.x
 	_update_speed_factor()
 
 func _go_to_main_menu() -> void:
-	"""Добавление сцены финиша поверх игровой сцены"""
-	print("Добавление сцены финиша...")
-	
-	# Скрываем автопилот, если он виден
-	var scene_tree: SceneTree = get_tree()
-	if scene_tree:
-		var root: Node = scene_tree.root
-		if root:
-			var main_node: Node2D = root.get_node_or_null("Main")
-			if main_node:
-				var autopilot_animation: CanvasLayer = main_node.get_node_or_null("AutopilotAnimation")
-				if autopilot_animation and autopilot_animation.has_method("hide_autopilot"):
-					autopilot_animation.hide_autopilot()
-					print("Автопилот скрыт")
-	
-	var game_over_scene: PackedScene = load("res://menus/GameOver/game_over.tscn")
-	if game_over_scene == null:
-		push_error("Не удалось загрузить сцену финиша: res://menus/GameOver/game_over.tscn")
-		return
-	
-	var game_over_instance: Node = game_over_scene.instantiate()
-	if game_over_instance == null:
-		push_error("Не удалось создать инстанс сцены финиша")
-		return
-	
-	# Добавляем сцену финиша к корню дерева сцены (поверх игровой сцены)
-	var scene_root: Node = get_tree().root
-	scene_root.add_child(game_over_instance)
-	print("Сцена финиша добавлена поверх игровой сцены")
+	"""Переход в главное меню после приземления"""
+	print("Переход в главное меню...")
+	var error_code: Error = get_tree().change_scene_to_file("res://menus/MainMenu/main_menu.tscn")
+	if error_code != OK:
+		push_error("Ошибка при переходе в главное меню: " + str(error_code))
+		print("Путь к сцене: res://menus/MainMenu/main_menu.tscn")
 
 func _auto_landing_control(delta: float) -> void:
 	"""Автоматически управляет траекторией приземления для достижения полосы"""
@@ -722,14 +672,3 @@ func _update_target_runway_position() -> void:
 	if start_airport:
 		_target_runway_x = start_airport.position.x + RUNWAY_START_OFFSET_X
 		_target_runway_y = start_airport.position.y + 187.0
-
-# === Управление звуком мотора ===
-func _start_propeller_sound() -> void:
-	"""Запускает звук мотора: сначала стартовый звук, затем зацикленный"""
-	if propeller_start_sound and not propeller_start_sound.playing:
-		propeller_start_sound.play()
-
-func _on_propeller_start_finished() -> void:
-	"""Обработчик завершения стартового звука мотора - запускает зацикленный звук"""
-	if propeller_loop_sound:
-		propeller_loop_sound.play()
