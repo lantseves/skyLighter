@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dgm5b3yd18gb4"]
+[gd_scene load_steps=13 format=3 uid="uid://dgm5b3yd18gb4"]
 
 [ext_resource type="Script" uid="uid://cdty4rvqm0npc" path="res://menus/MainMenu/main_menu.gd" id="1_plj4j"]
 [ext_resource type="Texture2D" uid="uid://ebh77aejrf3h" path="res://assets/avatars/default_avatar.png" id="2_8m51k"]
@@ -7,6 +7,78 @@
 [ext_resource type="Script" uid="uid://11lal4ykklkf" path="res://menus/MainMenu/exit_button.gd" id="5_v6bm3"]
 [ext_resource type="Texture2D" uid="uid://delkae2gd4dyb" path="res://assets/icons/exit.png" id="6_mhmke"]
 [ext_resource type="PackedScene" uid="uid://304f62dpv5g1" path="res://menus/MainMenu/menu_parallax.tscn" id="7_0cq3m"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.15, 0.15, 0.15, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6"]
+bg_color = Color(0.15, 0.15, 0.15, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -30,10 +102,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -140.0
-offset_right = 150.0
-offset_bottom = 140.0
+offset_left = -300.0
+offset_top = -280.0
+offset_right = 300.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -43,21 +115,33 @@ theme_override_constants/separation = 60
 
 [node name="MenuButtons" type="VBoxContainer" parent="VBoxContainer/MainContent"]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 40
 
 [node name="ArcadeButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(600, 160)
 layout_mode = 2
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3")
 text = "Аркада"
 
 [node name="EnduranceButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(600, 160)
 layout_mode = 2
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3")
 text = "Выносливость"
 
 [node name="TestButton" type="Button" parent="VBoxContainer/MainContent/MenuButtons"]
-custom_minimum_size = Vector2(300, 80)
+custom_minimum_size = Vector2(600, 160)
 layout_mode = 2
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_1")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3")
 text = "Зачет"
 
 [node name="PlayerInfoMarginContainer" type="MarginContainer" parent="."]
@@ -151,32 +235,35 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -80.0
-offset_top = -80.0
+offset_left = -160.0
+offset_top = -160.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 50
 
 [node name="ExitButton" type="Control" parent="ExitMarginContainer"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 script = ExtResource("5_v6bm3")
 
 [node name="ExitBtn" type="TextureButton" parent="ExitMarginContainer/ExitButton"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(160, 160)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -40.0
-offset_top = -40.0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = -80.0
+offset_top = -80.0
+offset_right = 80.0
+offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_4")
+theme_override_styles/hover = SubResource("StyleBoxFlat_5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_6")
 texture_normal = ExtResource("6_mhmke")
 stretch_mode = 3
 

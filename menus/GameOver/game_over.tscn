@@ -1,6 +1,42 @@
-[gd_scene load_steps=2 format=3 uid="uid://b8k2m3n4p5q6r"]
+[gd_scene load_steps=5 format=3 uid="uid://b8k2m3n4p5q6r"]
 
 [ext_resource type="Script" uid="uid://cmh53vfmevb8l" path="res://menus/GameOver/game_over.gd" id="1_game_over"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.3, 0.3, 0.3, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.15, 0.15, 0.15, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.2, 0.2, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [node name="GameOver" type="CanvasLayer"]
 script = ExtResource("1_game_over")
@@ -31,14 +67,24 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MenuPanel" type="ColorRect" parent="Control/CenterContainer"]
-custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 color = Color(0.15, 0.15, 0.2, 0.95)
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/CenterContainer/MenuPanel"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -366.0
+offset_top = -357.5
+offset_right = 366.0
+offset_bottom = 357.5
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/margin_left = 40
@@ -47,7 +93,6 @@ theme_override_constants/margin_right = 40
 theme_override_constants/margin_bottom = 40
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Control/CenterContainer/MenuPanel/MarginContainer"]
-custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 40
@@ -55,30 +100,38 @@ theme_override_constants/separation = 40
 [node name="GameOverLabel" type="Label" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 72
+theme_override_font_sizes/font_size = 120
 text = "Game Over"
 horizontal_alignment = 1
 
 [node name="ScoreLabel" type="Label" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 80
 text = "Очки: 0"
 horizontal_alignment = 1
 
-[node name="ButtonsContainer" type="HBoxContainer" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
+[node name="ButtonsContainer" type="VBoxContainer" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/separation = 20
+theme_override_constants/separation = 40
 
 [node name="PlayAgainButton" type="Button" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(200, 60)
+custom_minimum_size = Vector2(450, 120)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 40
+theme_override_styles/hover = SubResource("StyleBoxFlat_2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3")
+theme_override_styles/normal = SubResource("StyleBoxFlat_1")
 text = "Сыграть еще"
 
 [node name="MainMenuButton" type="Button" parent="Control/CenterContainer/MenuPanel/MarginContainer/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(200, 60)
+custom_minimum_size = Vector2(450, 120)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 40
+theme_override_styles/hover = SubResource("StyleBoxFlat_2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_3")
+theme_override_styles/normal = SubResource("StyleBoxFlat_1")
 text = "Главное меню"
