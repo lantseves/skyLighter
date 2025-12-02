@@ -3,10 +3,13 @@ extends Node
 # Менеджер фоновой музыки для всей игры
 # Воспроизводит музыку непрерывно с момента запуска
 
-@onready var music_player: AudioStreamPlayer = $MusicPlayer
+var music_player: AudioStreamPlayer = null
 var music_started: bool = false
 
 func _ready() -> void:
+	# Получаем AudioStreamPlayer из сцены через get_node для надежности в браузере
+	music_player = get_node_or_null("MusicPlayer") as AudioStreamPlayer
+	
 	# Проверяем наличие AudioStreamPlayer из сцены
 	if not music_player:
 		push_error("AudioStreamPlayer не найден в сцене MusicManager")
