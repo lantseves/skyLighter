@@ -3,36 +3,31 @@ extends Node
 # Менеджер фоновой музыки для всей игры
 # Воспроизводит музыку непрерывно с момента запуска
 
-var music_player: AudioStreamPlayer = null
+@onready var music_player: AudioStreamPlayer = $MusicPlayer
 var music_started: bool = false
 
-const MUSIC_PATH: String = "res://sound/main_music.ogg"
-
 func _ready() -> void:
-	# Создаём AudioStreamPlayer для музыки
-	music_player = AudioStreamPlayer.new()
-	add_child(music_player)
-	
-	# Устанавливаем громкость музыки на 20% тише (-2 dB)
-	music_player.volume_db = -2.0
+	# Проверяем наличие AudioStreamPlayer из сцены
+	if not music_player:
+		push_error("AudioStreamPlayer не найден в сцене MusicManager")
+		return
 	
 	# Подключаем сигнал окончания трека для перезапуска
-	music_player.finished.connect(_on_music_finished)
+	if not music_player.finished.is_connected(_on_music_finished):
+		music_player.finished.connect(_on_music_finished)
 	
-	# Загружаем музыку
-	var music_stream: AudioStream = load(MUSIC_PATH)
-	if music_stream:
-		music_player.stream = music_stream
-		# Настраиваем зацикливание
-		if music_stream is AudioStreamOggVorbis:
-			var ogg_stream: AudioStreamOggVorbis = music_stream as AudioStreamOggVorbis
+	# Проверяем наличие stream
+	if music_player.stream:
+		# Настраиваем зацикливание (должно быть уже настроено в сцене, но на всякий случай)
+		if music_player.stream is AudioStreamOggVorbis:
+			var ogg_stream: AudioStreamOggVorbis = music_player.stream as AudioStreamOggVorbis
 			ogg_stream.loop = true
 		
 		# НЕ запускаем музыку автоматически - браузеры блокируют автозапуск
 		# Музыка будет запущена после первого пользовательского взаимодействия
 		print("Музыка загружена, ожидание пользовательского взаимодействия")
 	else:
-		push_error("Не удалось загрузить музыку: " + MUSIC_PATH)
+		push_error("AudioStream не настроен в MusicPlayer")
 
 func start_music() -> void:
 	# Запускаем музыку после первого пользовательского взаимодействия
