@@ -26,19 +26,12 @@ func _ready() -> void:
 		if not music_player.finished.is_connected(_on_music_finished):
 			music_player.finished.connect(_on_music_finished)
 		
-		# НЕ запускаем музыку автоматически - браузеры блокируют автозапуск
-		# Музыка будет запущена после первого пользовательского взаимодействия
-		print("Музыка загружена, ожидание пользовательского взаимодействия")
-	else:
-		push_error("AudioStream не настроен в MusicPlayer")
-
-func start_music() -> void:
-	# Запускаем музыку после первого пользовательского взаимодействия
-	# Это необходимо для работы в браузерах, которые блокируют автозапуск аудио
-	if not music_started and music_player and music_player.stream:
+		# Запускаем музыку сразу при загрузке
 		music_player.play()
 		music_started = true
 		print("Фоновая музыка запущена")
+	else:
+		push_error("AudioStream не настроен в MusicPlayer")
 
 func _on_music_finished() -> void:
 	# Если музыка закончилась (на случай, если зацикливание не сработало)
