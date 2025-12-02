@@ -205,6 +205,10 @@ func _handle_input() -> void:                # Сбор инпута (нужны
 
 # === Взлёт (авторазгон) ===
 func _start_takeoff() -> void:
+	# Запускаем музыку при первом клике пользователя (если еще не запущена)
+	# Это необходимо для работы в браузерах, которые блокируют автозапуск аудио
+	MusicManager.start_music()
+	
 	is_start_position = false
 	is_takeoff = true
 	can_control = false
