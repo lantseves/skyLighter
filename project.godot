@@ -25,9 +25,8 @@ Enums="*res://global/enums.gd"
 window/size/viewport_width=1080
 window/size/viewport_height=1920
 window/size/resizable=false
-window/fullsize=true
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
+window/fullsize=true
 
 [editor]
 
