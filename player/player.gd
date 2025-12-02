@@ -89,12 +89,16 @@ func _ready() -> void:                       # Вызывается при вх�
 	# В веб-версии зацикливание через stream.loop может не работать надежно,
 	# поэтому всегда используем перезапуск через сигнал finished
 	if propeller_loop_sound:
+		# Устанавливаем громкость звука мотора на 40% тише (-4.5 dB)
+		propeller_loop_sound.volume_db = -4.5
 		# Подключаем сигнал завершения зацикленного звука для перезапуска
 		if not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
 			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
 	
 	# Подключаем сигнал завершения стартового звука к запуску зацикленного
 	if propeller_start_sound:
+		# Устанавливаем громкость звука мотора на 40% тише (-4.5 dB)
+		propeller_start_sound.volume_db = -4.5
 		if not propeller_start_sound.finished.is_connected(_on_propeller_start_finished):
 			propeller_start_sound.finished.connect(_on_propeller_start_finished)
 
@@ -344,11 +348,17 @@ func _start_propeller_sound() -> void:
 	# Проверяем доступность узлов звука
 	if not propeller_start_sound and has_node("PropellerStartSound"):
 		propeller_start_sound = $PropellerStartSound as AudioStreamPlayer
+		# Устанавливаем громкость звука мотора на 40% тише (-4.5 dB)
+		if propeller_start_sound:
+			propeller_start_sound.volume_db = -4.5
 	if not propeller_loop_sound and has_node("PropellerLoopSound"):
 		propeller_loop_sound = $PropellerLoopSound as AudioStreamPlayer
-		# Подключаем сигнал, если еще не подключен
-		if propeller_loop_sound and not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
-			propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
+		# Устанавливаем громкость звука мотора на 40% тише (-4.5 dB)
+		if propeller_loop_sound:
+			propeller_loop_sound.volume_db = -4.5
+			# Подключаем сигнал, если еще не подключен
+			if not propeller_loop_sound.finished.is_connected(_on_propeller_loop_finished):
+				propeller_loop_sound.finished.connect(_on_propeller_loop_finished)
 	
 	if propeller_start_sound:
 		propeller_start_sound.play()
