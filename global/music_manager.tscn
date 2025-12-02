@@ -1,12 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://0b2a04a780b545a1"]
+[gd_scene load_steps=3 format=3 uid="uid://chbkr57fqv8cr"]
 
-[ext_resource type="Script" path="res://global/music_manager.gd" id="1_music_manager"]
+[ext_resource type="Script" uid="uid://30jsn5jjf23r" path="res://global/music_manager.gd" id="1_music_manager"]
 [ext_resource type="AudioStream" uid="uid://cvxnnknf1lfpb" path="res://sound/main_music.ogg" id="2_main_music"]
 
 [node name="MusicManager" type="Node"]
 script = ExtResource("1_music_manager")
 
 [node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
-volume_db = -2.0
 stream = ExtResource("2_main_music")
-
+volume_db = -2.0
